@@ -100,3 +100,39 @@ These are combined as query parameters, e.g. `/?seed=TEST-1&loadout=coil-cascade
 ## Assets
 
 [docs/ASSETS.md](docs/ASSETS.md) records the provenance of every shipped file. Environment pieces, props, enemies, ground textures, the industrial ambience and the refinery music come unmodified from [felixarvid2/Ashfall](https://github.com/felixarvid2/Ashfall) @ `7c2b0a6`. The two weapon models were generated for this project with Meshy Text-to-3D; see [assets-src/weapons/PROVENANCE.md](assets-src/weapons/PROVENANCE.md). Card mechanics follow [felixarvid2/krypta](https://github.com/felixarvid2/krypta) @ `06e1521` (reference notes in `docs/research/`).
+
+## Status and verification (first slice)
+
+All four milestones are implemented: movement, weapons and import, horde encounters, the roguelite run, and refinery and weapon art.
+
+The following was run and checked:
+
+- `npm ci`, `npm run typecheck`, `npm test` (14 files, 141 tests) and `npm run build` all pass.
+- The tests cover:
+  - stat formulas and clamps, rank caps, distinct offers, exhausted pools
+  - pact rules and inactive cards, reroll/skip/double-pick guards
+  - same-seed offer determinism
+  - proc limits: a 9-pellet Ionized check, a kill by secondary damage, a Mass Driver pierce, cascade counter consumption
+  - frame-rate-independent movement at 30, 60 and 144 Hz
+  - reload and swap rules, muzzle obstruction
+  - ramp walkability, director accounting and stuck recovery
+  - full headless autoplay runs
+- The autoplay bot (seed `AUTOPLAY-1`, simulated time) extracts with no pact in 7.1 min and with the Coil Pact in 6.9 min. With the Arc Pact it extracts in 10.0 min with assist and dies at 9.2 min without it. The Slag Fields swarm peaks at 54–69 live enemies, 144 total.
+- In headless Chromium with SwiftShader, both the dev server and the production preview played menu → drafts → yard → Slag Fields → Cargo Loader → relay → extraction → results → same-seed restart. There were zero console errors. Every request in the preview build went to the local server: GLB, WebP, OGG and fonts, with Rapier WASM and the Meshopt decoder bundled.
+- Stress test, `?stress=120` on the production build at 1280×720 with render scale 1: about 175 draw calls and 254k triangles. Frame times in this container come from software GL and are not representative. On the simulation side, a sim step with 120 enemies takes 0.15 ms at p50 and 1.6 ms at p99 in Node.
+
+The following has not been verified here:
+
+- real GPU frame times at 1080p
+- real pointer lock
+- audible audio
+- a human playthrough to confirm the 8–12 minute target (the bot is faster than a human)
+
+### Known issues and next tasks
+
+1. **Human playtest on target hardware.** Do one full run per path. Record 1080p p50/p95/p99 frame times in `vite preview` together with browser, GPU, render scale and enemy count. Then tune run length against the 8–12 minute target.
+2. **Service Emitter viewmodel.** It is still a rough procedural device. The viewmodels have no hands.
+3. **Arc Scattergun model.** Meshy did not produce the forked two-jaw emitter. Regenerate with Image-to-3D once a concept-image service is available; fal.ai refused authentication in this session. Then clean up the rear geometry and add separate moving parts.
+4. **Telegraph readability.** Telegraphs on small enemies at 30 m and beyond could be stronger.
+5. **`skipTo` objective text.** With `skipTo`, the first frame still shows the deployment objective. This only affects the dev flag.
+6. **Later content.** Furnace Lobber, Rivet Lance, Lumen Splicer and Induction Array; the Fire Bloater and Slagborn; Cinder Flats and the Hydroponic Vaults; feats, sidegrades and difficulty modifiers.
