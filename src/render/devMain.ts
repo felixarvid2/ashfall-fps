@@ -175,6 +175,12 @@ async function main() {
       dev.events.push({ type: 'shot', shotId: 1, weapon: w, origin, dir, hits });
       for (const h of hits.slice(0, 4)) dev.events.push({ type: 'impact', weapon: w, point: h, normal: v(-dir.x, 0.2, -dir.z), surface: 'world' });
     },
+    look(f: [number, number, number], t: [number, number, number]) {
+      dev.cam.pos = v(f[0], f[1], f[2]);
+      const dx = t[0] - f[0], dy = t[1] - f[1], dz = t[2] - f[2];
+      dev.cam.yaw = Math.atan2(-dx, -dz);
+      dev.cam.pitch = Math.atan2(dy, Math.hypot(dx, dz));
+    },
     pushEvent(e: GameEvent) { dev.events.push(e); },
     frame(): RenderFrame {
       const x = dev.extra;

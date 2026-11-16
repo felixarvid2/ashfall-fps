@@ -13,7 +13,7 @@ const HELD_LENGTH: Record<WeaponId, number> = { coil_carbine: 0.62, arc_scatterg
 const TOE: Record<WeaponId, { yaw: number; pitch: number; roll: number }> = {
   coil_carbine: { yaw: 0.07, pitch: 0.02, roll: 0 },
   arc_scattergun: { yaw: 0.07, pitch: 0.02, roll: 0 },
-  service_emitter: { yaw: 0.1, pitch: 0.0, roll: 0 },
+  service_emitter: { yaw: 0.12, pitch: -0.4, roll: 0 },
 };
 const CELL_COLOR: Record<WeaponId, number> = { coil_carbine: 0xffa030, arc_scattergun: 0x70c8ff, service_emitter: 0x8affc8 };
 
@@ -109,7 +109,8 @@ export class Viewmodel {
     rig.cell = mk();
     rig.cell2 = mk();
     this.scene.add(rig.cell, rig.cell2);
-    rig.cellBase.set(rig.pivot.x + 0.015, rig.pivot.y - 0.085, rig.pivot.z + 0.03);
+    const mo = MUZZLE_OFFSET[id];
+    rig.cellBase.set(mo.x - 0.04, mo.y + 0.03, mo.z + 0.1);
   }
 
   private buildGun(id: WeaponId): Rig {
@@ -184,7 +185,7 @@ export class Viewmodel {
     this.addCell(rig, id);
     // cold-chamber / charge glow at the muzzle tip
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture(), color: id === 'arc_scattergun' ? 0x90d0ff : 0xffb050, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, depthTest: false, opacity: 0 }));
-    glow.scale.setScalar(0.18);
+    glow.scale.setScalar(0.34 / orient.scale.x);
     glow.renderOrder = 19;
     muzzle.add(glow);
     rig.glow = glow;
@@ -198,39 +199,42 @@ export class Viewmodel {
     const pivot = this.pivotFor(id);
     root.position.copy(pivot);
     root.add(pose);
-    const dark = new THREE.MeshStandardMaterial({ color: 0x2c2a28, metalness: 0.8, roughness: 0.45 });
-    const orange = new THREE.MeshStandardMaterial({ color: 0x9a4a18, metalness: 0.5, roughness: 0.55 });
+    const dark = new THREE.MeshStandardMaterial({ color: 0x5a554e, metalness: 0.7, roughness: 0.4 });
+    const orange = new THREE.MeshStandardMaterial({ color: 0xc4601c, metalness: 0.4, roughness: 0.5 });
     const cloth = new THREE.MeshStandardMaterial({ color: 0x302820, roughness: 0.95 });
     const glowMat = new THREE.MeshStandardMaterial({ color: 0x103828, emissive: 0x8affc8, emissiveIntensity: 0.4, metalness: 0.3, roughness: 0.3 });
     const g = new THREE.Group();
     // forearm sleeve running back toward camera, lower right
     const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.065, 0.5, 12), cloth);
     arm.rotation.x = Math.PI / 2;
-    arm.position.set(0.04, -0.06, 0.32);
+    arm.position.set(0.03, -0.07, 0.2);
     g.add(arm);
     const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.062, 0.07, 12), orange);
     cuff.rotation.x = Math.PI / 2;
-    cuff.position.set(0.04, -0.06, 0.06);
+    cuff.position.set(0.03, -0.07, -0.05);
     g.add(cuff);
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.07, 0.2), dark);
-    body.position.set(0.0, 0.0, -0.06);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.085, 0.17), dark);
+    body.position.set(0.0, 0.0, -0.1);
     g.add(body);
-    const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.12, 12), dark);
+    const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.038, 0.2, 14), dark);
     nozzle.rotation.x = Math.PI / 2;
-    nozzle.position.set(0, 0.005, -0.22);
+    nozzle.position.set(0, 0.005, -0.2);
     g.add(nozzle);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.008, 8, 20), glowMat);
-    ring.position.set(0, 0.005, -0.17);
+    const tip = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.007, 8, 16), glowMat);
+    tip.position.set(0, 0.005, -0.3);
+    g.add(tip);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.048, 0.01, 8, 24), glowMat);
+    ring.position.set(0, 0.005, -0.16);
     g.add(ring);
-    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.104, 0.012, 0.12), orange);
-    stripe.position.set(0, 0.04, -0.05);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.114, 0.014, 0.12), orange);
+    stripe.position.set(0, 0.045, -0.09);
     g.add(stripe);
-    const screen = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.004, 0.06), glowMat);
-    screen.position.set(0, 0.037, 0.0);
+    const screen = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.004, 0.07), glowMat);
+    screen.position.set(0, 0.049, -0.02);
     g.add(screen);
     const muzzle = new THREE.Object3D();
     muzzle.name = 'Muzzle';
-    muzzle.position.set(0, 0.005, -0.285);
+    muzzle.position.set(0, 0.005, -0.31);
     g.add(muzzle);
     const orient = new THREE.Group();
     orient.add(g);
@@ -333,13 +337,13 @@ export class Viewmodel {
         if (r > 0.1 && r < 0.5) {
           const t = (r - 0.1) / 0.4;
           old.visible = true;
-          old.position.set(base.x + off.x + t * 0.03, base.y + off.y - t * t * 0.9, base.z + off.z + t * 0.05);
+          old.position.set(base.x + off.x + t * 0.14, base.y + off.y - t * t * 0.34 + t * 0.02, base.z + off.z + t * 0.05);
           old.rotation.set(t * 2.2, t * 1.4, t * 3);
         } else old.visible = false;
         if (r > 0.42 && r < 0.74) {
           const t = smooth((r - 0.42) / 0.3);
           neu.visible = true;
-          neu.position.set(base.x + off.x + (1 - t) * 0.05, base.y + off.y - (1 - t) * 0.3, base.z + off.z + (1 - t) * 0.04);
+          neu.position.set(base.x + off.x + (1 - t) * 0.16, base.y + off.y - (1 - t) * 0.1, base.z + off.z + (1 - t) * 0.02);
           neu.rotation.set((1 - t) * 0.9, (1 - t) * -0.5, 0);
           (neu.material as THREE.MeshStandardMaterial).emissiveIntensity = 1.6 + (r > 0.7 ? 3 : 0);
         } else neu.visible = false;
@@ -355,7 +359,7 @@ export class Viewmodel {
         m.opacity = vm.slugReady ? pulse * (0.5 + 0.5 * flashScale) : 0;
         for (const mt of rig.mats) {
           mt.emissive.setHex(0x4aa0ff);
-          mt.emissiveIntensity = vm.slugReady ? 0.25 * pulse : 0;
+          mt.emissiveIntensity = vm.slugReady ? 0.02 * pulse : 0;
         }
       } else if (vm.weapon === 'service_emitter') {
         const c = vm.charge;
@@ -376,7 +380,7 @@ export class Viewmodel {
     if (vm.sinceShot < fl && vm.raise > 0.5) {
       const t = vm.sinceShot / fl;
       this.muzzleCameraSpace(vm.weapon, this.tmp);
-      const sz = (vm.weapon === 'arc_scattergun' ? 0.55 : vm.weapon === 'service_emitter' ? 0.2 : 0.34) * this.flashSize * (1 - t * 0.5);
+      const sz = (vm.weapon === 'arc_scattergun' ? 0.4 : vm.weapon === 'service_emitter' ? 0.2 : 0.34) * this.flashSize * (1 - t * 0.5);
       const fs = this.flashSprite;
       const col = def.fx.flashColor;
       fs.visible = this.flashCore.visible = true;

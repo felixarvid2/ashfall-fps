@@ -175,7 +175,7 @@ export class Fx {
       }
       case 'cone': {
         const d = v3(ev.dir).normalize();
-        const f = this.addFlash('cone', ev.pos, 0xaee6ff, 0.22, ev.range * 0.6, ev.range, 0.7, 1.5);
+        const f = this.addFlash('cone', ev.pos, 0xaee6ff, 0.22, ev.range * 0.6, ev.range, 0.4, 1.5);
         if (f) f.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d);
         break;
       }

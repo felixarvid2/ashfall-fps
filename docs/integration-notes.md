@@ -32,3 +32,11 @@
 - Ramp convention: positive pitch raises the local −Z end; yaw applied outside pitch. Physics + render must match.
 - Prop collider `offset` is relative to a ground-based `pos`.
 - Layout: start (0,0,126); yard centre (0,0,65); rack (−12,0,97); slag centre (0,0,−45); approach (0,0,−143); relay (0,3,−226.5); extraction (0,0,−258); The Pillar (0,0,−310).
+
+## Render (src/render)
+- `camera.fov` in RenderFrame = HORIZONTAL degrees (converted per aspect); 0 → settings.fov.
+- Prop/enemy/pickup/cache `pos` = base on the ground. Enemy yaw 0 faces −Z.
+- `frame.gatesOpen` keyed by box.id, then gateOpensAfter, then gateClosesOn; gateOpensAfter defaults closed, gateClosesOn defaults open.
+- Caches draw only when `available || open`. Loader `clawYaw` is body-relative.
+- Extras: `renderer.debug`, `dispose()`. Dev page: render-test.html (?manual, window.dev).
+- Open: Service Emitter barely visible (MUZZLE_OFFSET y), carbine renders bright, no hands.

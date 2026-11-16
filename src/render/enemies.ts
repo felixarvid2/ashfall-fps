@@ -387,7 +387,7 @@ export class EnemiesView {
     m.position.y -= sink;
 
     // shadows only for nearby enemies
-    const wantShadow = dist < 38 && !dead;
+    const wantShadow = dist < 28 && !dead;
     if (wantShadow !== e.shadowOn) {
       e.shadowOn = wantShadow;
       for (const mesh of e.meshes) mesh.castShadow = wantShadow;
@@ -407,13 +407,13 @@ export class EnemiesView {
     if (st.state === 'windup') {
       const c = new THREE.Color(cfg.tell);
       const pulse = 0.55 + 0.45 * Math.sin(time * (14 + prog * 20));
-      const k = (0.08 + prog * 0.42) * pulse;
+      const k = (0.04 + prog * 0.22) * pulse;
       f.x += c.r * k;
       f.y += c.g * k;
       f.z += c.b * k;
     }
     if (st.ionized) {
-      const p = 0.07 + 0.03 * Math.sin(time * 8 + st.id);
+      const p = 0.03 + 0.012 * Math.sin(time * 8 + st.id);
       f.x += 0.1 * p;
       f.y += 0.7 * p;
       f.z += 1.0 * p;

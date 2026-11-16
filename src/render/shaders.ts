@@ -41,7 +41,7 @@ void main() {
   float edge = pow(abs(dot(normalize(vN), normalize(vV))), 1.6);
   float flow = 0.8 + 0.2 * sin(vUv.y * 40.0 - uTime * 6.0) + 0.1 * vn(vec2(vUv.x * 5.0, vUv.y * 30.0 - uTime * 3.0));
   float a = pow(clamp(1.0 - vUv.y, 0.0, 1.0), 0.35) * edge * flow * uIntensity;
-  gl_FragColor = vec4(uColor * 1.4, clamp(a, 0.0, 1.0));
+  gl_FragColor = vec4(uColor * 0.9, clamp(a, 0.0, 1.0));
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }`;

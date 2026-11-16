@@ -31,8 +31,8 @@ uniform float uAmount; uniform vec3 uColor; varying vec2 vUv;
 void main(){
   vec2 p = vUv * 2.0 - 1.0;
   float r = length(p * vec2(0.9, 1.0));
-  float v = 0.22 + 0.78 * smoothstep(0.25, 1.25, r);
-  gl_FragColor = vec4(uColor, clamp(uAmount * v, 0.0, 0.85));
+  float v = 0.1 + 0.9 * smoothstep(0.3, 1.25, r);
+  gl_FragColor = vec4(uColor, clamp(uAmount * 0.75 * v, 0.0, 0.6));
 }`;
 
 export class GameRenderer {

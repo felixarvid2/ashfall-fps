@@ -306,9 +306,9 @@ export class LevelView {
       });
       g.add(chest);
       const beamMat = makeBeamMaterial(0x6fd8ff);
-      beamMat.uniforms.uIntensity.value = 0.7;
+      beamMat.uniforms.uIntensity.value = 0.45;
       this.shaderMats.push(beamMat);
-      const beam = new THREE.Mesh(columnGeometry(0.5, 0.25, 12, 2), beamMat);
+      const beam = new THREE.Mesh(columnGeometry(0.28, 0.12, 12, 2), beamMat);
       beam.scale.y = 6;
       beam.renderOrder = 3;
       beam.frustumCulled = false;
@@ -345,12 +345,10 @@ export class LevelView {
     bar2.position.set(0, 0.7, -0.04);
     const base = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.08, 0.5), orange);
     base.position.set(0, 0.04, 0);
-    const back = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.9, 0.03), steel);
-    back.position.set(0, 0.95, -0.1);
-    g.add(bar, bar2, base, back);
+    g.add(bar, bar2, base);
     const id = r.weapon === 'coil_carbine' ? 'weapon.coil_carbine' : 'weapon.arc_scattergun';
     const gun = this.assets.rawClone(id) ?? new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.25, 0.15), new THREE.MeshStandardMaterial({ color: 0x777777 }));
-    gun.scale.setScalar(1.1 / 1.9);
+    gun.scale.setScalar(1.25 / 1.9);
     gun.position.set(0, 0.92, 0.0);
     gun.traverse((o) => {
       const m = o as THREE.Mesh;
@@ -402,7 +400,7 @@ export class LevelView {
     group.position.set(e.pos.x, e.pos.y, e.pos.z);
     const colMat = makeBeamMaterial(0x9dffb8);
     this.shaderMats.push(colMat);
-    const col = new THREE.Mesh(columnGeometry(e.radius * 0.7, e.radius * 0.55, 24, 2), colMat);
+    const col = new THREE.Mesh(columnGeometry(e.radius * 0.5, e.radius * 0.35, 24, 2), colMat);
     col.scale.y = 70;
     col.renderOrder = 3;
     col.frustumCulled = false;
@@ -447,7 +445,7 @@ export class LevelView {
         targetInt = 0.18 + 0.12 * f;
       } else if (phase === 'active') {
         disc = 0.4 + 0.1 * Math.sin(time * 22);
-        targetInt = 1.15;
+        targetInt = 0.85;
       }
       v.inten += (targetInt - v.inten) * Math.min(1, dt * (targetInt > v.inten ? 14 : 6));
       v.discMat.opacity = disc;
@@ -508,7 +506,7 @@ export class LevelView {
       const e = this.extraction;
       const on = frame.extractionActive;
       e.col.visible = on;
-      e.colMat.uniforms.uIntensity.value = 0.8 + 0.2 * Math.sin(time * 4);
+      e.colMat.uniforms.uIntensity.value = 0.5 + 0.12 * Math.sin(time * 4);
       e.ringMat.opacity = on ? 0.8 : 0.18;
       e.ringMat.color.setHex(on ? 0x9dffb8 : 0x886644);
       if (on) this.fx.requestLight(e.pos, 0x9dffb8, 0.9, camPos);

@@ -6,6 +6,12 @@ import { ASSETS } from '../content/assets';
 import { assetUrl } from '../content/assetTypes';
 import { makeCrackEmissive } from './textures';
 
+/**
+ * LOD files whose simplified triangles stretch across UV islands (verified
+ * visually: texture looks smeared/muddy vs LOD0) even though vertex UVs match.
+ */
+const LOD_BLOCKLIST = new Set(['props/fuel_tank_lod1.glb', 'props/fuel_tank_lod2.glb']);
+
 /** Everything the renderer knows how to load, shared across runs. */
 export class AssetLibrary {
   private loader = new GLTFLoader();
@@ -17,6 +23,8 @@ export class AssetLibrary {
   readonly failed = new Set<string>();
   /** LODs that were skipped because their materials/UVs could not be matched. */
   readonly skippedLods: string[] = [];
+  /** Mean UV error per LOD file vs LOD0 (diagnostic). */
+  readonly uvErr = new Map<string, number>();
   crackEmissive: THREE.Texture | null = null;
 
   constructor() {
@@ -145,6 +153,52 @@ export class AssetLibrary {
     return outer;
   }
 
+  /** Mean UV error of a LOD vs LOD0 at matching positions (both already normalized to the same height/base). */
+  private uvError(a: THREE.Object3D, b: THREE.Object3D): number {
+    const collect = (root: THREE.Object3D, stride: number) => {
+      root.updateMatrixWorld(true);
+      const out: number[] = [];
+      const v = new THREE.Vector3();
+      root.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (!m.isMesh) return;
+        const pos = m.geometry.getAttribute('position');
+        const uv = m.geometry.getAttribute('uv');
+        if (!uv) return;
+        for (let i = 0; i < pos.count; i += stride) {
+          v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+          out.push(v.x, v.y, v.z, uv.getX(i), uv.getY(i));
+        }
+      });
+      return out;
+    };
+    const A = collect(a, 1);
+    const B = collect(b, 5);
+    if (!A.length || !B.length) return 1;
+    let sum = 0;
+    let cnt = 0;
+    for (let j = 0; j < B.length; j += 5) {
+      let best = Infinity;
+      for (let i = 0; i < A.length; i += 5) {
+        const dx = A[i] - B[j], dy = A[i + 1] - B[j + 1], dz = A[i + 2] - B[j + 2];
+        const d = dx * dx + dy * dy + dz * dz;
+        if (d < best) best = d;
+      }
+      const tol = best + 1e-6;
+      let e = Infinity;
+      for (let i = 0; i < A.length; i += 5) {
+        const dx = A[i] - B[j], dy = A[i + 1] - B[j + 1], dz = A[i + 2] - B[j + 2];
+        if (dx * dx + dy * dy + dz * dz <= tol) {
+          const du = A[i + 3] - B[j + 3], dv = A[i + 4] - B[j + 4];
+          e = Math.min(e, Math.hypot(du, dv));
+        }
+      }
+      sum += Math.min(e, 1);
+      cnt++;
+    }
+    return sum / Math.max(1, cnt);
+  }
+
   /** Match LOD materials to LOD0 materials (LOD files carry no images). Returns false if unusable. */
   private shareMaterials(lod0: THREE.Object3D, lod: THREE.Object3D, label: string): boolean {
     const l0: THREE.Material[] = [];
@@ -210,7 +264,19 @@ export class AssetLibrary {
         if (!g) return;
         const copy = g.scene.clone(true);
         if (!this.shareMaterials(src, copy, file)) return;
-        lod.addLevel(this.normalize(copy, h), dist[i] ?? d2);
+        const norm = this.normalize(copy, h);
+        // verify the LOD's UVs line up with LOD0's texture atlas; otherwise skip the LOD
+        let err = this.uvErr.get(file);
+        if (err === undefined) {
+          err = LOD_BLOCKLIST.has(file) ? 1 : this.uvError(lod0, norm);
+          this.uvErr.set(file, err);
+          if (err > 0.03) {
+            this.skippedLods.push(file);
+            console.warn(`[render] LOD skipped (uv error ${err.toFixed(3)}):`, file);
+          }
+        }
+        if (err > 0.03) return;
+        lod.addLevel(norm, dist[i] ?? d2);
       });
       out = lod;
     }
