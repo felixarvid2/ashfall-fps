@@ -24,3 +24,11 @@
 - If the game rejects a pick, call `showDraft` again. Ui does not handle Esc on the pause screen itself (game handles Esc → resume).
 - Draft keys: 1/2/3, ←/→ (A/D) + Enter/Space, R reroll, S skip; Esc/Tab inert; 250 ms input guard; one action per `showDraft`.
 - Results keys: R/Enter same seed, N new seed, M menu.
+
+## Enemies, director, level
+- EnemyManager emits enemy_spawn/hit/die/tell/attack/boss_phase itself; Director emits wave_warn/wave_start/encounter_clear and opens arena gates on clear (`setGateOpen` matches gate id or `gateOpensAfter`). The run must not duplicate them.
+- Loader adds: manager queues call requests at 66%/33%; Director drains them in `step`.
+- `renderStates().fade` 0→1 after death (alpha = 1 − fade); `pos` is model base; drones hover 3–5 m.
+- Ramp convention: positive pitch raises the local −Z end; yaw applied outside pitch. Physics + render must match.
+- Prop collider `offset` is relative to a ground-based `pos`.
+- Layout: start (0,0,126); yard centre (0,0,65); rack (−12,0,97); slag centre (0,0,−45); approach (0,0,−143); relay (0,3,−226.5); extraction (0,0,−258); The Pillar (0,0,−310).

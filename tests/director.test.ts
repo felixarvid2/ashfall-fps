@@ -142,17 +142,17 @@ describe('Director', () => {
     expect(first.type === 'wave_warn' && first.lane).not.toBe('yard_main');
   });
 
-  it('runs the slag fight to 60-80 simultaneous enemies when the player does not keep up', () => {
+  it('slag fight peaks at 55-80 simultaneous enemies against a steady killer', () => {
     const { dir, step, mgr, killAll } = setup('A5', { x: 0, y: 0, z: -4 });
     dir.startArena('slag');
     let peak = 0;
     for (let i = 0; i < 60 * 170; i++) {
       step();
       peak = Math.max(peak, mgr.liveCount());
-      // a mediocre player kills ~1 enemy / 0.9 s
-      if (i % 54 === 0) {
-        const ids = mgr.aliveIds();
-        if (ids.length) mgr.applyDamage(ids[0]!, 1e6, { x: 0, y: 1, z: 0 }, 'direct');
+      // a decent player kills the nearest enemy within 40 m about every 0.6 s
+      if (i % 36 === 0) {
+        const near = mgr.inRadius({ x: 0, y: 1, z: -4 }, 40);
+        if (near.length) mgr.applyDamage(near[0]!.id, 1e6, { x: 0, y: 1, z: 0 }, 'direct');
       }
     }
     expect(peak).toBeGreaterThanOrEqual(55);
