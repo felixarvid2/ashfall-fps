@@ -98,13 +98,11 @@ export class CardRuntime {
     // --- Step 3: per-target aggregation (pre-shot Ionized state captured here, once per target).
     const agg = new Map<number, Agg>();
     const infoCache = new Map<number, EnemyInfo | null>();
-    const pelletHits: { id: number; dist: number }[][] = [];
     for (const p of trace.pellets) {
       const hits = p.enemyHits
         .filter((h) => h.dist <= stats.rangeMax && (!p.worldHit || h.dist <= p.worldHit.dist))
         .sort((a, b) => a.dist - b.dist)
         .slice(0, maxHits);
-      const used: { id: number; dist: number }[] = [];
       hits.forEach((h, i) => {
         let info = infoCache.get(h.enemy);
         if (info === undefined) {
@@ -115,7 +113,6 @@ export class CardRuntime {
         const mul = slug ? (slugMul[i] ?? slugMul[slugMul.length - 1]!) : i === 0 ? 1 : stats.pierceDamageMul;
         const dmg = (slug ? baseShot : perPellet) * mul * falloff(h.dist);
         if (dmg <= 0) return;
-        used.push({ id: h.enemy, dist: h.dist });
         let a = agg.get(h.enemy);
         if (!a) {
           a = {
@@ -130,7 +127,6 @@ export class CardRuntime {
           a.point = h.point;
         }
       });
-      pelletHits.push(used);
       const first = hits[0];
       const dir = p.dir;
       outcome.tracerEnds.push(
@@ -292,7 +288,6 @@ export class CardRuntime {
       }
     }
 
-    void pelletHits;
     return outcome;
   }
 }

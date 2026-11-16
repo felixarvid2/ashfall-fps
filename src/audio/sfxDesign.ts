@@ -523,5 +523,22 @@ export async function renderSfx(id: SfxId, variant: number): Promise<AudioBuffer
   const pitch = variant === 0 ? 1 : variant === 1 ? 0.94 : 1.06;
   const synth = new Synth(off, off.destination, hash(id) + variant * 7919 + 1, pitch);
   def.build(synth);
-  return off.startRendering();
+  const buf = await off.startRendering();
+  // Hot sounds can sum past full scale; pull them under 0.95 so the bus never hard-clips.
+  let peak = 0;
+  for (let c = 0; c < buf.numberOfChannels; c++) {
+    const d = buf.getChannelData(c);
+    for (let i = 0; i < d.length; i++) {
+      const a = Math.abs(d[i]);
+      if (a > peak) peak = a;
+    }
+  }
+  if (peak > 0.95) {
+    const k = 0.95 / peak;
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < d.length; i++) d[i] *= k;
+    }
+  }
+  return buf;
 }
