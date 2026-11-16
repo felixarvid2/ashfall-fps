@@ -52,7 +52,6 @@ export class DraftOverlay {
     const n = this.node;
     n.replaceChildren();
     el('div', 'dtitle', view.title, n);
-    el('div', 'dsub', 'Choose one', n);
     const row = el('div', 'sw-cards', undefined, n);
     this.cards = view.cards.map((c, i) => {
       const card = buildDraftCard(c, i);

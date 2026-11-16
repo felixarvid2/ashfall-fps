@@ -78,7 +78,7 @@ export class Ui {
   /** Sub-panel (settings/controls/credits) layered over menu or pause. */
   private openModal(title: string, body: HTMLElement): void {
     this.closeModal();
-    const scr = el('div', 'sw-screen sw-dim', undefined, this.screenHost);
+    const scr = el('div', 'sw-screen sw-dim sw-modalbg', undefined, this.screenHost);
     const panel = el('div', 'sw-panel sw-modal', undefined, scr);
     el('h2', undefined, title, panel);
     panel.appendChild(body);

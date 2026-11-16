@@ -95,7 +95,7 @@ switch (screen) {
   case 'menu': ui.showMenu(profile); break;
   case 'pause': ui.showPause('ASH-4471', settings); break;
   case 'resume': ui.showClickToResume(); break;
-  case 'settings': ui.showPause('ASH-4471', settings); (document.querySelectorAll('.sw-pause button')[3] as HTMLElement).click(); break;
+  case 'settings': ui.showPause('ASH-4471', settings); [...document.querySelectorAll<HTMLElement>('.sw-pause button')].find((b) => b.textContent === 'Settings')!.click(); break;
   case 'draft': ui.showDraft(draft(q.get('norr') ? { canReroll: false, salvage: 5 } : {})); break;
   case 'results': ui.showResults(q.get('dead') ? { ...results, outcome: 'dead', unlockedNow: [] } : results); break;
   case 'inspect': ui.setHudVisible(true); ui.updateHud(hud); ui.toggleInspect(owned); break;

@@ -43,7 +43,7 @@ export function buildOwnedCard(c: OwnedCardView): HTMLElement {
   el('i', undefined, `RANK ${c.rank}/${c.maxRank}`, t);
   el('div', 'rr', `${RARITY_LABEL[c.rarity] ?? c.rarity} • ${c.scopeLabel}`, d);
   el('div', 'd', c.text, d);
-  if (c.drawback) el('div', 'dr', `▲ ${c.drawback}`, d).style.color = 'var(--warn)';
+  if (c.drawback) el('div', 'dr', c.drawback, d).style.color = 'var(--warn)';
   for (const p of c.prereqLines) el('div', `pq ${p.met ? 'met' : 'unmet'}`, `${p.met ? '✓' : '✗'} ${p.text}`, d);
   if (c.inactive) {
     const unmet = c.prereqLines.find((p) => !p.met);
