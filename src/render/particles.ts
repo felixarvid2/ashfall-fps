@@ -41,7 +41,7 @@ export class ParticleSystem {
   constructor(
     capacity: number,
     map: THREE.Texture,
-    opts: { additive: boolean; drag?: number } = { additive: true },
+    opts: { additive: boolean; drag?: number; smooth?: boolean } = { additive: true },
   ) {
     this.n = capacity;
     this.pos = new Float32Array(capacity * 3);
@@ -54,6 +54,7 @@ export class ParticleSystem {
     this.s01 = new Float32Array(capacity * 2);
     this.grav = new Float32Array(capacity);
     this.drag = opts.drag ?? 0.2;
+    this.smooth = !!opts.smooth;
     this.geo = new THREE.BufferGeometry();
     this.geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     this.geo.setAttribute('aColor', new THREE.BufferAttribute(this.col, 4).setUsage(THREE.DynamicDrawUsage));
@@ -71,6 +72,7 @@ export class ParticleSystem {
     this.points.renderOrder = 5;
   }
   private drag: number;
+  private smooth: boolean;
 
   setScale(pixelsPerMeterAtUnit: number): void {
     this.mat.uniforms.uScale.value = pixelsPerMeterAtUnit;
@@ -115,7 +117,7 @@ export class ParticleSystem {
       this.pos[i * 3] += this.vel[i * 3] * dt;
       this.pos[i * 3 + 1] += this.vel[i * 3 + 1] * dt;
       this.pos[i * 3 + 2] += this.vel[i * 3 + 2] * dt;
-      const fade = this.life[i] <= 0 ? 0 : (1 - t) * (1 - t) * Math.min(1, t * 12 + 0.2);
+      const fade = this.life[i] <= 0 ? 0 : this.smooth ? Math.sin(Math.PI * t) : (1 - t) * (1 - t) * Math.min(1, t * 12 + 0.2);
       this.col[i * 4] = this.c0[i * 4];
       this.col[i * 4 + 1] = this.c0[i * 4 + 1];
       this.col[i * 4 + 2] = this.c0[i * 4 + 2];
