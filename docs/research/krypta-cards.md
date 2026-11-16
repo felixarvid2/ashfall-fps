@@ -1,0 +1,11 @@
+# KRYPTA card mechanics — reference notes
+
+Source: felixarvid2/krypta @ 06e1521d9b5b10677422275dcd4c89d7873af01b (read-only reference; nothing copied verbatim except the RNG algorithm shape).
+
+- **Card data** (`js/cards.js`): tuples `[id, name, rarity, mods, max, text, extra]`; `mods` is a map of numeric stat keys summed across owned ranks. Extras flag `pact`, `weapon`+`wup` (weapon-specific upgrade), `curse`/`bad` (drawback lines rendered red).
+- **Stacking**: `computeMods` sums each key across owned cards. Use sites are additive within a key and multiplicative across keys: magazine `max(1, round(mag*(1+magSize)))`, delay `delay/(1+fireRate)`, reload `base/(1+reloadSpeed)`, damage `dmg*(1+dmg)*...`. No central clamps — SLAGWIRE adds explicit floors/ceilings.
+- **Draft** `draw(rng, n)` (cards.js:708-725): filter `owned < max`, unlocked, pact cards only while no pact, weapon upgrades only when `c.weapon === pact`. Weight = rarityWeight × (pact 1.0 | weapon-upgrade 7 | other 1). rarityWeight with `t = depth*0.25`: common `w*max(0.25,1-0.3t)`, uncommon `w*(1+0.2t)`, rare `w*(1+0.8t)`, legendary `w*(1+1.5t)`; base weights 60/28/10/2. Weighted pick then splice (without replacement). No filler — SLAGWIRE adds supply fillers.
+- **Pact** (`swearPact`, game.js:3815): sets run.pact, grants and fills the weapon, removes other weapons, switches to it. Other weapon pickups → pact ammo + currency (game.js:4178). Weapon upgrades are dormant unless the pact weapon is held.
+- **RNG** (`js/rng.js`): mulberry32 core seeded by FNV-1a+murmur3 finalizer hash of `'rng:'+seed`; `fork(tag)` = `RNG(hash(key+'|'+tag))` — independent of how much the parent stream was consumed. Helpers: int, range, pick, chance, shuffle, weighted.
+- **UI** (`js/cardui.js`): preview diff lines `LABEL before → after` (max 4 rows), keys 1–9 select, arrows move focus, Enter/Space confirm, Esc skip, R reroll; window-level key capture with keyup swallowed so the pick does not leak into gameplay; a `picked` guard prevents a double pick; UI timers bound to a token so stale timers don't fire.
+- **Known KRYPTA quirks to avoid**: reroll can re-show cards already on screen; reroll price escalates; draft RNG reseeded per floor so mid-floor state isn't persisted.
