@@ -160,20 +160,20 @@ export class EnemiesView {
     const claw = new THREE.Group();
     // shoulder pivot at the right side of the torso
     claw.position.set(H * 0.42, H * 0.62, -H * 0.1);
-    const upper = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 1.5), steel);
+    const upper = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 1.5), steel);
     upper.position.set(0, 0, -0.75);
-    const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 8), rust);
+    const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 8), rust);
     elbow.position.set(0, 0, -1.5);
     const fore = new THREE.Group();
     fore.position.set(0, 0, -1.5);
     fore.name = 'fore';
-    const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 1.2), steel);
+    const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.38, 1.2), steel);
     forearm.position.set(0, 0, -0.6);
     fore.add(forearm);
     for (const s of [-1, 0, 1]) {
-      const prong = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.8, 6), rust);
+      const prong = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.9, 6), rust);
       prong.rotation.x = -Math.PI / 2 + 0.0;
-      prong.position.set(s * 0.22, s === 0 ? 0 : -0.06, -1.5);
+      prong.position.set(s * 0.34, s === 0 ? 0 : -0.06, -1.5);
       prong.rotation.z = s * 0.25;
       fore.add(prong);
     }
@@ -407,12 +407,13 @@ export class EnemiesView {
     if (st.state === 'windup') {
       const c = new THREE.Color(cfg.tell);
       const pulse = 0.55 + 0.45 * Math.sin(time * (14 + prog * 20));
-      f.x += c.r * (0.3 + prog * 1.1) * pulse;
-      f.y += c.g * (0.3 + prog * 1.1) * pulse;
-      f.z += c.b * (0.3 + prog * 1.1) * pulse;
+      const k = (0.08 + prog * 0.42) * pulse;
+      f.x += c.r * k;
+      f.y += c.g * k;
+      f.z += c.b * k;
     }
     if (st.ionized) {
-      const p = 0.16 + 0.07 * Math.sin(time * 8 + st.id);
+      const p = 0.07 + 0.03 * Math.sin(time * 8 + st.id);
       f.x += 0.1 * p;
       f.y += 0.7 * p;
       f.z += 1.0 * p;
@@ -464,7 +465,7 @@ export class EnemiesView {
       e.streak.visible = e.tellSprite!.visible = on;
       if (on) {
         const k = winding ? prog : 1;
-        e.streak.scale.set(0.4 + k * 2.4, 0.09 + k * 0.05, 1);
+        e.streak.scale.set(0.6 + k * 3.2, 0.16 + k * 0.1, 1);
         (e.streak.material as THREE.SpriteMaterial).opacity = 0.4 + 0.6 * k;
         e.tellSprite!.scale.setScalar(0.3 + k * 0.7);
         (e.tellSprite!.material as THREE.SpriteMaterial).opacity = 0.5 + 0.5 * k;
@@ -564,8 +565,8 @@ export class EnemiesView {
     if (show) {
       const k = winding ? prog : 1;
       const pulse = 0.6 + 0.4 * Math.sin(time * (12 + 20 * k));
-      e.arcMat!.opacity = (0.15 + 0.5 * k) * pulse + 0.1;
-      if (atk === 'slam') e.slamRing!.scale.setScalar(2.2 + k * 1.6);
+      e.arcMat!.opacity = (0.1 + 0.4 * k) * pulse + 0.08;
+      if (atk === 'slam') e.slamRing!.scale.setScalar(1.8 + k * 1.2);
     }
   }
 }
