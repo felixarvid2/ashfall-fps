@@ -18,24 +18,33 @@ function finish(c: HTMLCanvasElement, srgb = true): THREE.CanvasTexture {
 }
 
 export function makeHazardTexture(): THREE.CanvasTexture {
-  const [c, g] = canvas(256, 256);
-  g.fillStyle = '#16120e';
-  g.fillRect(0, 0, 256, 256);
-  g.fillStyle = '#d9a21b';
-  const w = 64;
-  for (let i = -4; i < 8; i++) {
+  const N = 256;
+  const [c, g] = canvas(N, N);
+  g.fillStyle = '#1f1b17';
+  g.fillRect(0, 0, N, N);
+  // wide diagonal yellow stripes (2 per tile), then heavy wear on top
+  g.fillStyle = '#c28f18';
+  const period = N / 2;
+  for (let i = -3; i < 5; i++) {
     g.beginPath();
-    g.moveTo(i * w, 256);
-    g.lineTo(i * w + w / 2, 256);
-    g.lineTo(i * w + w / 2 + 256, 0);
-    g.lineTo(i * w + 256, 0);
+    g.moveTo(i * period, N);
+    g.lineTo(i * period + 52, N);
+    g.lineTo(i * period + 52 + N, 0);
+    g.lineTo(i * period + N, 0);
     g.closePath();
     g.fill();
   }
-  // grime
-  for (let i = 0; i < 900; i++) {
-    g.fillStyle = `rgba(20,14,8,${Math.random() * 0.18})`;
-    g.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 6, 1 + Math.random() * 3);
+  // scuffed / rusted wear
+  for (let i = 0; i < 1400; i++) {
+    const r = Math.random();
+    g.fillStyle = r < 0.5 ? `rgba(24,18,12,${0.15 + Math.random() * 0.4})` : r < 0.8 ? `rgba(110,60,25,${Math.random() * 0.35})` : `rgba(70,66,60,${Math.random() * 0.3})`;
+    g.fillRect(Math.random() * N, Math.random() * N, 1 + Math.random() * 10, 1 + Math.random() * 4);
+  }
+  for (let i = 0; i < 14; i++) {
+    g.fillStyle = `rgba(22,16,10,${0.25 + Math.random() * 0.3})`;
+    g.beginPath();
+    g.ellipse(Math.random() * N, Math.random() * N, 8 + Math.random() * 30, 5 + Math.random() * 18, Math.random() * 3, 0, 6.3);
+    g.fill();
   }
   const t = finish(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;

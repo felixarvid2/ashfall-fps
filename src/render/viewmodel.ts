@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { WeaponId } from '../sim/types';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { MUZZLE_OFFSET, type ViewmodelState } from './types';
 import type { Settings } from '../ui/types';
 import { WEAPONS } from '../content/weapons';
@@ -128,6 +129,20 @@ export class Viewmodel {
     const L = HELD_LENGTH[id];
     if (src) {
       cloneMaterials(src);
+      // balance: carbine's ceramic is too bright, scattergun's steel too dark
+      const bal = id === 'coil_carbine' ? { c: 0.6, m: 0.35 } : { c: 3.2, m: 0.3 };
+      const done = new Set<THREE.Material>();
+      src.traverse((o) => {
+        const mm = o as THREE.Mesh;
+        if (!mm.isMesh) return;
+        for (const x of Array.isArray(mm.material) ? mm.material : [mm.material]) {
+          const sm = x as THREE.MeshStandardMaterial;
+          if (done.has(x) || !sm.isMeshStandardMaterial) continue;
+          done.add(x);
+          sm.color.multiplyScalar(bal.c);
+          sm.metalness = Math.min(sm.metalness, bal.m);
+        }
+      });
       src.traverse((o) => {
         const m = o as THREE.Mesh;
         if (m.isMesh) {
@@ -208,7 +223,7 @@ export class Viewmodel {
     root.add(pose);
     const dark = new THREE.MeshStandardMaterial({ color: 0x5a554e, metalness: 0.7, roughness: 0.4 });
     const orange = new THREE.MeshStandardMaterial({ color: 0xc4601c, metalness: 0.4, roughness: 0.5 });
-    const cloth = new THREE.MeshStandardMaterial({ color: 0x302820, roughness: 0.95 });
+    const cloth = new THREE.MeshStandardMaterial({ color: 0x4a3c30, roughness: 0.95 });
     const glowMat = new THREE.MeshStandardMaterial({ color: 0x103828, emissive: 0x8affc8, emissiveIntensity: 0.4, metalness: 0.3, roughness: 0.3 });
     const g = new THREE.Group();
     // forearm sleeve running back toward camera, lower right
@@ -216,11 +231,11 @@ export class Viewmodel {
     arm.rotation.x = Math.PI / 2;
     arm.position.set(0.03, -0.06, 0.05);
     g.add(arm);
-    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.062, 0.07, 12), orange);
+    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.05, 16), orange);
     cuff.rotation.x = Math.PI / 2;
-    cuff.position.set(0.03, -0.07, -0.05);
+    cuff.position.set(0.02, -0.075, -0.04);
     g.add(cuff);
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.085, 0.17), dark);
+    const body = new THREE.Mesh(new RoundedBoxGeometry(0.11, 0.085, 0.17, 3, 0.018), dark);
     body.position.set(0.0, 0.0, -0.1);
     g.add(body);
     const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.038, 0.2, 14), dark);
@@ -233,10 +248,21 @@ export class Viewmodel {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.048, 0.01, 8, 24), glowMat);
     ring.position.set(0, 0.005, -0.16);
     g.add(ring);
-    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.114, 0.014, 0.12), orange);
+    for (let k = 0; k < 3; k++) {
+      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.034 - k * 0.002, 0.005, 8, 18), glowMat);
+      coil.position.set(0, 0.005, -0.21 - k * 0.03);
+      g.add(coil);
+    }
+    for (let k = 0; k < 3; k++) {
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.01, 16), dark);
+      band.rotation.x = Math.PI / 2;
+      band.position.set(0.02, -0.075, 0.06 + k * 0.07);
+      g.add(band);
+    }
+    const stripe = new THREE.Mesh(new RoundedBoxGeometry(0.114, 0.016, 0.12, 2, 0.006), orange);
     stripe.position.set(0, 0.045, -0.09);
     g.add(stripe);
-    const screen = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.004, 0.07), glowMat);
+    const screen = new THREE.Mesh(new RoundedBoxGeometry(0.07, 0.006, 0.07, 2, 0.002), glowMat);
     screen.position.set(0, 0.049, -0.02);
     g.add(screen);
     const muzzle = new THREE.Object3D();

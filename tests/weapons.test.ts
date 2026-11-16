@@ -189,13 +189,13 @@ describe('weapon state machine', () => {
     expect(ws.addAmmoPickup('arc_charges', 1)).toBeNull(); // arc not owned yet
     const r = ws.addAmmoPickup('coil_cells', 1)!;
     expect(r.weapon).toBe('coil_carbine');
-    expect(r.added).toBe(Math.min(AMMO_PICKUP.coil_cells, 256 - 96));
+    expect(r.added).toBe(Math.min(AMMO_PICKUP.coil_cells, WEAPONS.coil_carbine.reserveMax - WEAPONS.coil_carbine.startReserve));
     ws.refundReserve('coil_carbine', 999);
     expect(ws.addAmmoPickup('coil_cells', 1)!.added).toBe(0);
     // Funnel multiplier
     ws.giveMain('arc_scattergun');
     const before = ws.reserve('arc_scattergun');
-    expect(ws.addAmmoPickup('arc_charges', 1.5)!.added).toBe(Math.min(12, WEAPONS.arc_scattergun.reserveMax - before));
+    expect(ws.addAmmoPickup('arc_charges', 1.5)!.added).toBe(Math.min(Math.round(AMMO_PICKUP.arc_charges * 1.5), WEAPONS.arc_scattergun.reserveMax - before));
     // Pact on arc: coil pickups convert at 0.2 into arc reserve.
     ws.applyPact('arc_scattergun');
     expect(ws.current).toBe('arc_scattergun');
@@ -203,7 +203,7 @@ describe('weapon state machine', () => {
     const a0 = ws.reserve('arc_scattergun');
     const conv = ws.addAmmoPickup('coil_cells', 1)!;
     expect(conv.weapon).toBe('arc_scattergun');
-    expect(conv.added).toBe(Math.min(8, WEAPONS.arc_scattergun.reserveMax - a0));
+    expect(conv.added).toBe(Math.min(Math.round(AMMO_PICKUP.coil_cells * 0.2), WEAPONS.arc_scattergun.reserveMax - a0));
     expect(ws.pactWeaponConversion()!.salvage).toBe(15);
   });
 

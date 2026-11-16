@@ -540,7 +540,7 @@ export class Game {
         break;
       case 'wave_warn':
         a.play('wave_warn');
-        ui.banner(`INCOMING: ${e.lane}`, 'warn');
+        ui.banner(`INCOMING: ${e.label}`, 'warn');
         break;
       case 'wave_start':
         ui.banner(`WAVE ${e.wave}/${e.total}`, 'wave');

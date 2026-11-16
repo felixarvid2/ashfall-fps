@@ -32,7 +32,7 @@ void main(){
   vec2 p = vUv * 2.0 - 1.0;
   float r = length(p * vec2(0.9, 1.0));
   float v = 0.1 + 0.9 * smoothstep(0.3, 1.25, r);
-  gl_FragColor = vec4(uColor, clamp(uAmount * 0.75 * v, 0.0, 0.6));
+  gl_FragColor = vec4(uColor, clamp(uAmount * 0.38 * v, 0.0, 0.32));
 }`;
 
 export class GameRenderer {
@@ -199,7 +199,7 @@ export class GameRenderer {
       r.clearDepth();
       r.render(vm.scene, vm.camera);
     }
-    const amt = frame.flash.amount * (0.35 + 0.65 * this.settings.flashIntensity);
+    const amt = frame.flash.amount * this.settings.flashIntensity;
     if (amt > 0.004) {
       this.overlayMat.uniforms.uAmount.value = amt;
       this.overlayMat.uniforms.uColor.value.setHex(frame.flash.color);

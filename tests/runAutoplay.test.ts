@@ -88,8 +88,15 @@ describe('autoplayer full runs on the real level', () => {
     }, 120_000);
   }
 
-  it('reports how the unassisted bot fares (informational)', async () => {
-    for (const policy of ['none', 'coil', 'arc'] as PactPolicy[]) {
+  it('unassisted bot (no pact) extracts with only level pickups and drops', async () => {
+    const r = await playRun('AUTOPLAY-1', 'none', false, 14 * 60);
+    console.log(summary('unassisted none', r));
+    expect(r.outcome).toBe('extracted');
+    expect(r.time).toBeGreaterThan(6 * 60);
+  }, 240_000);
+
+  it('reports how the unassisted bot fares on the pact paths (informational)', async () => {
+    for (const policy of ['coil', 'arc'] as PactPolicy[]) {
       const r = await playRun('AUTOPLAY-1', policy, false, 12 * 60);
       console.log(summary(`unassisted ${policy}`, r));
       expect(r.time).toBeGreaterThan(30);

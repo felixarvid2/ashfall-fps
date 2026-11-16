@@ -2,6 +2,7 @@
 import { GameRenderer } from './index';
 import type { EnemyRenderState, RenderFrame, ViewmodelState } from './types';
 import type { LevelDef, BoxDef } from '../content/levelTypes';
+import { REFINERY } from '../content/level';
 import type { EnemyKind, EnemyState, GameEvent, WeaponId } from '../sim/types';
 
 const v = (x: number, y: number, z: number) => ({ x, y, z });
@@ -130,7 +131,7 @@ async function main() {
   await r.load((f, label) => {
     hud.textContent = `loading ${(f * 100).toFixed(0)}% ${label}`;
   });
-  const level = makeLevel();
+  const level = params.get('level') === 'real' ? REFINERY : makeLevel();
   r.buildLevel(level);
   r.resize(innerWidth, innerHeight);
   addEventListener('resize', () => r.resize(innerWidth, innerHeight));

@@ -25,7 +25,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     capacity: 32,
     reloadTime: 1.4,
     reserveMax: 256,
-    startReserve: 96,
+    startReserve: 140,
     equipTime: 0.32,
     recoil: { pitch: 0.55, yawJitter: 0.25, recover: 0.09, kickBack: 0.045 },
     sockets: 2,
@@ -49,7 +49,7 @@ export const WEAPONS: Record<WeaponId, WeaponDef> = {
     capacity: 6,
     reloadTime: 1.8,
     reserveMax: 48,
-    startReserve: 18,
+    startReserve: 24,
     equipTime: 0.4,
     recoil: { pitch: 4.5, yawJitter: 0.8, recover: 0.16, kickBack: 0.14 },
     sockets: 2,
@@ -96,7 +96,7 @@ export const AMMO_OF: Record<MainWeaponId, AmmoType> = {
 };
 
 /** Ammo pickup sizes (before Salvage Funnel). */
-export const AMMO_PICKUP: Record<AmmoType, number> = { coil_cells: 40, arc_charges: 8 };
+export const AMMO_PICKUP: Record<AmmoType, number> = { coil_cells: 60, arc_charges: 10 };
 
 /** Converting a pickup of one ammo type into the other (pact redirection). */
 export const AMMO_CONVERSION: Record<AmmoType, Record<AmmoType, number>> = {

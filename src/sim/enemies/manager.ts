@@ -4,6 +4,7 @@ import type { PhysicsQueries } from '../../physics/types';
 import type { EnemyRenderState, ProjectileRenderState } from '../../render/types';
 import type { Rng } from '../../core/rng';
 import type { DamageOrigin, EnemyInfo, EnemyKind, EnemyState, GameEvent, RayEnemyHit, Vec3 } from '../types';
+import { FlowField } from './nav';
 import { buildObstacles, buildRamps, ObstacleGrid, rayVerticalCapsule, type Ramp } from './geometry';
 
 export interface PlayerTarget {
@@ -87,6 +88,10 @@ class Enemy {
   // ramp routing
   via: Ramp | null = null;
   viaStage = 0;
+  followUntil = 0;
+  followMin = 0;
+  fx = 0;
+  fz = 0;
 }
 
 interface Projectile {
@@ -114,6 +119,8 @@ export class EnemyManager {
   private emit: (e: GameEvent) => void;
   private obstacles: ObstacleGrid;
   private ramps: Ramp[];
+  private flow: FlowField;
+  private flowOk = false;
   private pool: Enemy[] = [];
   private free: number[] = [];
   private active: Enemy[] = [];
@@ -146,6 +153,7 @@ export class EnemyManager {
     const b = level.bounds;
     this.obstacles = new ObstacleGrid(buildObstacles(level), b.min.x, b.min.z, b.max.x, b.max.z);
     this.ramps = buildRamps(level);
+    this.flow = new FlowField(this.obstacles, b.min.x, b.min.z, b.max.x, b.max.z);
     for (const a of level.arenas) for (const l of a.lanes) this.lanes.set(l.id, { lane: l, arena: a });
     this.gOx = b.min.x;
     this.gOz = b.min.z;
@@ -349,6 +357,7 @@ export class EnemyManager {
 
   setGateOpen(id: string, open: boolean): void {
     for (const o of this.obstacles.list) if (o.gateId === id || o.gateArena === id) o.active = !open;
+    this.flow.markDirty();
   }
 
   clear(): void {
@@ -427,6 +436,7 @@ export class EnemyManager {
       this.gHead[ci] = e.slot;
     }
     const pl = player;
+    this.flow.update(pl.pos.x, pl.pos.z, time);
     for (let i = 0; i < this.active.length; i++) {
       const e = this.active[i]!;
       if (e.dead) {
@@ -560,10 +570,41 @@ export class EnemyManager {
     const look = 1.4 + e.radius * 2;
     const r = e.radius * 0.9;
     const og = this.obstacles;
-    if (!og.blocked(e.x + dx * look, e.z + dz * look, r, e.y, e.height) && !og.blocked(e.x + dx * look * 0.5, e.z + dz * look * 0.5, r, e.y, e.height)) {
+    const directFree =
+      !og.blocked(e.x + dx * look, e.z + dz * look, r, e.y, e.height) && !og.blocked(e.x + dx * look * 0.5, e.z + dz * look * 0.5, r, e.y, e.height);
+    if (e.followUntil > this.time) {
+      if (directFree && this.time > e.followMin) e.followUntil = 0;
+      else if (!og.blocked(e.x + e.fx * look, e.z + e.fz * look, r, e.y, e.height)) {
+        e.dirx = e.fx;
+        e.dirz = e.fz;
+        return;
+      } else e.followUntil = 0;
+    }
+    if (directFree) {
       e.dirx = dx;
       e.dirz = dz;
       return;
+    }
+    if (this.flowOk && this.flow.dir(e.x, e.z)) {
+      e.dirx = this.flow.outX;
+      e.dirz = this.flow.outZ;
+      return;
+    }
+    // Blocked: commit to sliding along the obstacle (side-stable, so long walls are rounded, not oscillated against).
+    for (let s = 0; s < 2; s++) {
+      const sg = (s === 0 ? e.side : -e.side) * 1.45;
+      const c = Math.cos(sg);
+      const sn = Math.sin(sg);
+      const nx = dx * c - dz * sn;
+      const nz = dx * sn + dz * c;
+      if (!og.blocked(e.x + nx * look, e.z + nz * look, r, e.y, e.height)) {
+        e.fx = e.dirx = nx;
+        e.fz = e.dirz = nz;
+        e.followUntil = this.time + 25;
+        e.followMin = this.time + 0.8;
+        if (s === 1) e.side = -e.side;
+        return;
+      }
     }
     const angles = [0.55, 1.1, 1.7, 2.4];
     for (let i = 0; i < angles.length; i++) {
@@ -686,7 +727,9 @@ export class EnemyManager {
     if (this.time >= e.decideT || d2 < near * near) {
       e.decideT = this.time + 0.14 + (e.id % 4) * 0.01;
       this.pickTarget(e, pl);
+      this.flowOk = this.tx === pl.pos.x && this.tz === pl.pos.z;
       this.steer(e, this.tx - e.x, this.tz - e.z);
+      this.flowOk = false;
     }
     this.move(e, e.dirx, e.dirz, speed, dt, 9);
     this.faceToward(e, e.dirx, e.dirz, 9, dt);
@@ -802,6 +845,11 @@ export class EnemyManager {
           if (d <= 9 && dy < 2.5) {
             this.setState(e, 'windup', P.windup);
             this.tell(e, 'lunge', P.windup);
+          } else if (e.flankCycles >= 2) {
+            // Could not close in (cover in the way): charge straight at the player and path around it.
+            this.setState(e, 'advance', 0);
+            e.cd = this.time + 3;
+            e.flankCycles = 0;
           } else {
             // lane change: switch side, restart a shorter circle
             e.side = -e.side;

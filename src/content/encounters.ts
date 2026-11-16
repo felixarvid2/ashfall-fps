@@ -57,7 +57,7 @@ const wave = (label: string, groups: SpawnGroup[], o: Partial<WaveTemplate> & { 
   label,
   groups,
   advanceAt: 0,
-  cooldown: 4,
+  cooldown: 6,
   maxTime: 70,
   warn: 2.5,
   ...o,
@@ -93,7 +93,16 @@ const YARD: EncounterTemplate = {
         { kind: 'hound', count: 2, lanes: ['yard_east'], burst: 1, gap: 4, delay: 2 },
         { kind: 'walker', count: [6, 8], lanes: ['yard_main', 'yard_outer'], burst: 4, gap: 4, pick: 'cycle', charge: 0.4 },
       ],
-      { liveCap: 16, budget: 28, advanceAt: 0, cooldown: 3 },
+      { liveCap: 16, budget: 28, advanceAt: 2, cooldown: 5 },
+    ),
+    wave(
+      'PINCER',
+      [
+        { kind: 'walker', count: [8, 10], lanes: ['yard_outer', 'yard_east'], burst: 4, gap: 4, pick: 'cycle', charge: 0.5 },
+        { kind: 'hound', count: 2, lanes: ['yard_main'], burst: 1, gap: 4, delay: 4 },
+        { kind: 'drone', count: 1, lanes: ['yard_air'], burst: 1, gap: 3, delay: 6 },
+      ],
+      { liveCap: 16, budget: 24, advanceAt: 0, cooldown: 3 },
     ),
   ],
 };
@@ -107,13 +116,13 @@ const SLAG: EncounterTemplate = {
     wave(
       'CHARGING PACKS',
       [{ kind: 'walker', count: [10, 12], lanes: ['slag_nw', 'slag_ne'], burst: 5, gap: 4, pick: 'cycle', charge: 1 }],
-      { liveCap: 14, budget: 14, advanceAt: 3, cooldown: 3, warn: 3 },
+      { liveCap: 14, budget: 14, advanceAt: 3, cooldown: 6, warn: 3 },
     ),
     wave(
       'ROUTE BREAKERS',
       [
         { kind: 'hound', count: [5, 6], lanes: ['slag_west', 'slag_east'], burst: 2, gap: 3.5, pick: 'cycle' },
-        { kind: 'walker', count: [9, 11], lanes: ['slag_nw', 'slag_ne', 'slag_rear_w', 'slag_rear_e'], burst: 5, gap: 4, delay: 2 },
+        { kind: 'walker', count: [7, 9], lanes: ['slag_nw', 'slag_ne', 'slag_rear_w', 'slag_rear_e'], burst: 4, gap: 4, delay: 2 },
       ],
       { liveCap: 24, budget: 36, advanceAt: 5, cooldown: 3 },
     ),
@@ -121,18 +130,27 @@ const SLAG: EncounterTemplate = {
       'STRAIGHT LINES',
       [
         { kind: 'drone', count: [3, 4], lanes: ['slag_air'], burst: 2, gap: 6 },
-        { kind: 'walker', count: [13, 15], lanes: ['slag_west', 'slag_east'], burst: 7, gap: 5, pick: 'cycle', charge: 0.5, delay: 1 },
+        { kind: 'walker', count: [10, 12], lanes: ['slag_west', 'slag_east'], burst: 6, gap: 5, pick: 'cycle', charge: 0.5, delay: 1 },
       ],
       { liveCap: 30, budget: 58, advanceAt: 12, cooldown: 1 },
     ),
     wave(
+      'CRANE DROP',
+      [
+        { kind: 'drone', count: 3, lanes: ['slag_air'], burst: 1, gap: 5 },
+        { kind: 'hound', count: 4, lanes: ['slag_nw', 'slag_ne', 'slag_rear_w', 'slag_rear_e'], burst: 2, gap: 5, delay: 2 },
+        { kind: 'walker', count: [9, 11], lanes: SLAG_GROUND, burst: 5, gap: 4, delay: 1, charge: 0.4 },
+      ],
+      { liveCap: 28, budget: 40, advanceAt: 4, cooldown: 6 },
+    ),
+    wave(
       'THE SWARM',
       [
-        { kind: 'walker', count: [58, 64], lanes: SLAG_GROUND, burst: 14, gap: 2.8, charge: 0.35 },
-        { kind: 'hound', count: 10, lanes: ['slag_west', 'slag_east', 'slag_rear_w', 'slag_rear_e'], burst: 2, gap: 5, delay: 3 },
+        { kind: 'walker', count: [34, 38], lanes: SLAG_GROUND, burst: 9, gap: 3.2, charge: 0.35 },
+        { kind: 'hound', count: 8, lanes: ['slag_west', 'slag_east', 'slag_rear_w', 'slag_rear_e'], burst: 2, gap: 5, delay: 3 },
         { kind: 'drone', count: 4, lanes: ['slag_air'], burst: 2, gap: 9, delay: 5 },
       ],
-      { liveCap: 78, budget: 100, advanceAt: 10, cooldown: 2, maxTime: 90 },
+      { liveCap: 66, budget: 70, advanceAt: 10, cooldown: 2, maxTime: 90 },
     ),
     wave(
       'STRAGGLERS',
@@ -164,7 +182,15 @@ const APPROACH: EncounterTemplate = {
         { kind: 'walker', count: [6, 8], lanes: ['appr_rear', 'appr_west', 'appr_east'], burst: 4, gap: 3.5, pick: 'cycle', delay: 1 },
         { kind: 'hound', count: 2, lanes: ['appr_west', 'appr_east'], burst: 1, gap: 4, delay: 3, pick: 'cycle' },
       ],
-      { liveCap: 16, budget: 26, advanceAt: 0, cooldown: 2 },
+      { liveCap: 16, budget: 26, advanceAt: 2, cooldown: 5 },
+    ),
+    wave(
+      'SECOND SQUAD',
+      [
+        { kind: 'walker', count: [8, 10], lanes: ['appr_west', 'appr_east', 'appr_rear'], burst: 4, gap: 4, pick: 'cycle', charge: 0.4 },
+        { kind: 'drone', count: 2, lanes: ['appr_air'], burst: 1, gap: 5, delay: 3 },
+      ],
+      { liveCap: 16, budget: 22, advanceAt: 0, cooldown: 3 },
     ),
   ],
 };

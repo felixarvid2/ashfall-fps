@@ -179,9 +179,9 @@ wallZ('wall_conn_a_w', -4, 0, 8, 6, [], 'concrete');
 // Conveyor Loading Yard dressing: central conveyor, catwalk, three big covers
 // ---------------------------------------------------------------------------
 
-box('conveyor_main', 0, 0.55, 65, 4, 1.1, 40, 'conveyor');
-box('conveyor_motor_n', 0, 1.2, 43.5, 4.5, 2.4, 3, 'metal');
-box('conveyor_motor_s', 0, 1.2, 86.5, 4.5, 2.4, 3, 'metal');
+box('conveyor_main', 0, 1.2, 65, 4, 2.4, 40, 'conveyor'); // 2.4 m housing: cover, not standable
+box('conveyor_motor_n', 0, 1.6, 43.5, 4.5, 3.2, 3, 'metal');
+box('conveyor_motor_s', 0, 1.6, 86.5, 4.5, 3.2, 3, 'metal');
 // Catwalk beside the belt: deck top y=3.2, ramps at both ends (25 degrees).
 const DECK_Y = 3.2;
 box('deck_yard', 8, DECK_Y - 0.15, 64, 4, 0.3, 32, 'metal');
@@ -396,29 +396,53 @@ const relayLanes: LaneDef[] = [
 // ---------------------------------------------------------------------------
 
 const pickups: PickupDef[] = [
-  { kind: 'ammo_coil', pos: V(-9, 0, 94), amount: 30 },
+  // Deployment / rack.
+  { kind: 'ammo_coil', pos: V(-9, 0, 94), amount: 40 },
+  { kind: 'ammo_arc', pos: V(-15, 0, 94), amount: 12 },
   { kind: 'health', pos: V(10, 0, 92), amount: 25 },
+  // Yard, inside the fight (crates along the outer lanes).
+  { kind: 'ammo_coil', pos: V(-30, 0, 86), amount: 60 },
+  { kind: 'ammo_coil', pos: V(30, 0, 44), amount: 60 },
+  { kind: 'ammo_coil', pos: V(8, 3.2, 56), amount: 40 },
+  { kind: 'health', pos: V(-28, 0, 50), amount: 25 },
   // After the yard (predictable top-up before the connector).
-  { kind: 'health', pos: V(-2, 0, 22), amount: 35, afterArena: 'yard' },
-  { kind: 'ammo_coil', pos: V(-2, 0, 14), amount: 40, afterArena: 'yard' },
-  { kind: 'ammo_arc', pos: V(2, 0, 14), amount: 12, afterArena: 'yard' },
-  { kind: 'salvage', pos: V(0, 0, 6), amount: 20, afterArena: 'yard' },
+  { kind: 'health', pos: V(-2, 0, 22), amount: 40, afterArena: 'yard' },
+  { kind: 'ammo_coil', pos: V(-2, 0, 16), amount: 90, afterArena: 'yard' },
+  { kind: 'ammo_coil', pos: V(2, 0, 12), amount: 90, afterArena: 'yard' },
+  { kind: 'ammo_arc', pos: V(0, 0, 8), amount: 14, afterArena: 'yard' },
+  { kind: 'salvage', pos: V(0, 0, 4), amount: 20, afterArena: 'yard' },
+  // Slag Fields, inside the fight: outside paths and the crane shortcut.
+  { kind: 'ammo_coil', pos: V(-44, 0, -14), amount: 70 },
+  { kind: 'ammo_coil', pos: V(44, 0, -22), amount: 70 },
+  { kind: 'ammo_coil', pos: V(-42, 0, -56), amount: 70 },
+  { kind: 'ammo_coil', pos: V(42, 0, -58), amount: 70 },
+  { kind: 'ammo_arc', pos: V(0, 0, -30), amount: 10 },
+  { kind: 'ammo_arc', pos: V(43, 0, -52), amount: 10 },
+  { kind: 'health', pos: V(-42, 0, -44), amount: 30 },
+  { kind: 'health', pos: V(0, 0, -78), amount: 30 },
   // After the Slag Fields.
-  { kind: 'health', pos: V(-2, 0, -100), amount: 40, afterArena: 'slag' },
-  { kind: 'ammo_coil', pos: V(2, 0, -104), amount: 45, afterArena: 'slag' },
-  { kind: 'ammo_arc', pos: V(-2, 0, -108), amount: 14, afterArena: 'slag' },
+  { kind: 'health', pos: V(-2, 0, -100), amount: 50, afterArena: 'slag' },
+  { kind: 'ammo_coil', pos: V(2, 0, -104), amount: 90, afterArena: 'slag' },
+  { kind: 'ammo_coil', pos: V(-2, 0, -96), amount: 90, afterArena: 'slag' },
+  { kind: 'ammo_arc', pos: V(-2, 0, -108), amount: 16, afterArena: 'slag' },
   { kind: 'armor', pos: V(0, 0, -112), amount: 25, afterArena: 'slag' },
+  // Relay approach, inside the fight.
+  { kind: 'ammo_coil', pos: V(-25, 0, -132), amount: 60 },
+  { kind: 'ammo_coil', pos: V(25, 0, -132), amount: 60 },
+  { kind: 'ammo_arc', pos: V(0, 0, -124), amount: 8 },
   // After the approach.
-  { kind: 'health', pos: V(-6, 0, -158), amount: 40, afterArena: 'approach' },
-  { kind: 'ammo_coil', pos: V(6, 0, -158), amount: 45, afterArena: 'approach' },
+  { kind: 'health', pos: V(-6, 0, -158), amount: 50, afterArena: 'approach' },
+  { kind: 'ammo_coil', pos: V(6, 0, -158), amount: 90, afterArena: 'approach' },
+  { kind: 'ammo_coil', pos: V(-10, 0, -154), amount: 90, afterArena: 'approach' },
   { kind: 'ammo_arc', pos: V(0, 0, -160), amount: 16, afterArena: 'approach' },
+  // Relay platform: crates at the ramp head for the loader fight.
+  { kind: 'ammo_coil', pos: V(-26, PLAT_Y, -192), amount: 70 },
+  { kind: 'ammo_coil', pos: V(26, PLAT_Y, -192), amount: 70 },
+  { kind: 'ammo_arc', pos: V(0, PLAT_Y, -180), amount: 10 },
+  { kind: 'health', pos: V(0, PLAT_Y, -178), amount: 30 },
   // After the loader.
   { kind: 'health', pos: V(-4, PLAT_Y, -224), amount: 50, afterArena: 'relay' },
   { kind: 'salvage', pos: V(4, PLAT_Y, -224), amount: 40, afterArena: 'relay' },
-  // Scattered mid-arena finds for movement routes.
-  { kind: 'ammo_coil', pos: V(8, DECK_Y, 56), amount: 20 },
-  { kind: 'health', pos: V(-42, 0, -44), amount: 20 },
-  { kind: 'ammo_arc', pos: V(43, 0, -52), amount: 8 },
 ];
 
 const hazards: HazardDef[] = [
@@ -525,7 +549,7 @@ export const REFINERY: LevelDef = {
   pickups,
   hazards,
   weaponRack: { pos: V(-12, 0, 97), yaw: 0, weapon: 'arc_scattergun' },
-  relay: { pos: V(0, PLAT_Y, -226.5), interactRadius: 3.5, shutdownTime: 8, arena: 'relay' },
+  relay: { pos: V(0, PLAT_Y, -226.5), interactRadius: 3.5, shutdownTime: 14, arena: 'relay' },
   extraction: { pos: V(0, 0, -258), radius: 4.5 },
   radio,
   signs,

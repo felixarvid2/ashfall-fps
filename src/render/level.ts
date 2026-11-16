@@ -20,10 +20,10 @@ const SURF: Record<Exclude<SurfaceMat, 'invisible'>, SurfDef> = {
   cooling_slag: { tex: 'tex.cooling_slag', tile: 6, color: 0xffffff, rough: 0.9, metal: 0.05, emissive: true },
   grit: { tex: 'tex.grit', tile: 5, color: 0xd8c0b0, rough: 1, metal: 0 },
   concrete: { tex: 'tex.concrete', tile: 3, color: 0xcfc4bc, rough: 0.95, metal: 0 },
-  metal: { tex: 'tex.steel_plating', tile: 2.5, color: 0xd0c8c0, rough: 0.6, metal: 0.45 },
-  rust: { tex: 'tex.steel_plating', tile: 2, color: 0x9a7058, rough: 0.8, metal: 0.25 },
-  hazard: { tile: 1.6, color: 0xffffff, rough: 0.7, metal: 0.1 },
-  conveyor: { tex: 'tex.steel_grating', tile: 2, color: 0xb0aaa4, rough: 0.55, metal: 0.55 },
+  metal: { tex: 'tex.steel_plating', tile: 2.5, color: 0xf0e8e0, rough: 0.65, metal: 0.18 },
+  rust: { tex: 'tex.steel_plating', tile: 2, color: 0xc09878, rough: 0.8, metal: 0.12 },
+  hazard: { tile: 3, color: 0xffffff, rough: 0.85, metal: 0.05 },
+  conveyor: { tex: 'tex.steel_grating', tile: 2, color: 0xc8c2bc, rough: 0.6, metal: 0.3 },
 };
 
 function boxMatrix(b: BoxDef): THREE.Matrix4 {

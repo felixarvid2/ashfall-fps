@@ -1,6 +1,7 @@
 import type { InputSample } from '../input/input';
 import type { DraftOffer, Vec3 } from '../sim/types';
 import { getCard } from '../content/cards';
+import { WEAPONS } from '../content/weapons';
 import { forwardOf } from './math';
 import type { Run } from './run';
 
@@ -64,6 +65,8 @@ export class Bot {
   private tick = 0;
   private swapCd = 0;
   private noLos = 0;
+  private chase = { key: '', t: 0 };
+  private ignored = new Set<string>();
   /** Free medkits / ammo crates standing in for a human's better play (dev + autoplay tests). */
   assistOn = false;
   private medkits = 12;
@@ -164,6 +167,15 @@ export class Bot {
     const st = run.director.status;
     const fighting = st.arena !== null && !st.cleared.includes(st.arena) && (st.live > 0 || st.queued > 0);
 
+    // Mid-fight scavenging: grab nearby wanted drops when nothing is on top of us.
+    const loot = fighting && (!target || target.d > 6) ? this.wantedPickup(run, 14, true) : null;
+    if (loot) {
+      this.steerTo(run, out, loot.x, loot.z, 1);
+      if (target && target.los && target.d < 30) out.fireHeld = false;
+      this.yaw = out.yaw;
+      this.pitch = out.pitch;
+      return out;
+    }
     if (target && target.los) {
       this.noLos = 0;
       // Aim (turn-rate limited so the bot is not an aimbot).
@@ -219,22 +231,24 @@ export class Bot {
   }
 
   /** Nearest useful pickup within range (ammo when low, health when hurt), else null. */
-  private wantedPickup(run: Run): { x: number; z: number } | null {
+  private wantedPickup(run: Run, maxD = 30, fight = false): { x: number; z: number; id: string } | null {
     const p = run.player.pos;
     const w = run.weapons;
-    const lowCoil = w.owns('coil_carbine') && !w.isLocked('coil_carbine') && w.reserve('coil_carbine') < 120;
-    const lowArc = (w.owns('arc_scattergun') && !w.isLocked('arc_scattergun') && w.reserve('arc_scattergun') < 24) || (w.pact !== null && w.reserve(w.pact) < 100);
-    const hurt = run.player.health < run.player.maxHealth * 0.7;
-    let best: { x: number; z: number } | null = null;
-    let bd = 30;
+    const coilUsable = w.owns('coil_carbine') && !w.isLocked('coil_carbine');
+    const arcUsable = w.owns('arc_scattergun') && !w.isLocked('arc_scattergun');
+    const lowCoil = coilUsable && w.reserve('coil_carbine') < WEAPONS.coil_carbine.reserveMax * (fight ? 0.4 : 0.7);
+    const lowArc = arcUsable && w.reserve('arc_scattergun') < WEAPONS.arc_scattergun.reserveMax * (fight ? 0.4 : 0.7);
+    const hurt = run.player.health < run.player.maxHealth * (fight ? 0.55 : 0.7);
+    let best: { x: number; z: number; id: string } | null = null;
+    let bd = maxD;
     for (const k of run.renderPickups()) {
       if (k.id === 0) continue;
-      const want = (k.kind === 'ammo_coil' && (lowCoil || (w.pact !== null && lowArc))) || (k.kind === 'ammo_arc' && lowArc) || (k.kind === 'health' && hurt) || k.kind === 'salvage' || (k.kind === 'armor' && hurt);
-      if (!want) continue;
+      const want = (k.kind === 'ammo_coil' && lowCoil) || (k.kind === 'ammo_arc' && lowArc) || (k.kind === 'health' && hurt) || (k.kind === 'salvage' && !fight) || (k.kind === 'armor' && hurt);
+      if (!want || this.ignored.has(`${k.id}`)) continue;
       const d = dist2(p.x, p.z, k.pos.x, k.pos.z);
       if (d < bd && Math.abs(k.pos.y - p.y) < 2 && run.phys.lineOfSight({ x: p.x, y: p.y + 1, z: p.z }, { x: k.pos.x, y: k.pos.y + 1, z: k.pos.z })) {
         bd = d;
-        best = { x: k.pos.x, z: k.pos.z };
+        best = { x: k.pos.x, z: k.pos.z, id: `${k.id}` };
       }
     }
     return best;
@@ -244,6 +258,9 @@ export class Bot {
     const p = run.player.pos;
     const pk = this.wantedPickup(run);
     if (pk) {
+      if (this.chase.key === pk.id) this.chase.t += 1 / 60;
+      else this.chase = { key: pk.id, t: 0 };
+      if (this.chase.t > 7) this.ignored.add(pk.id);
       this.steerTo(run, out, pk.x, pk.z, 1);
       return;
     }
