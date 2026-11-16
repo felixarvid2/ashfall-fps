@@ -98,6 +98,13 @@ export class PhysicsWorld implements PhysicsQueries {
     return pw;
   }
 
+  /** Synchronous variant; `initPhysics()` must have resolved already. */
+  static createSync(level: LevelDef): PhysicsWorld {
+    const pw = new PhysicsWorld(level);
+    pw.build(level);
+    return pw;
+  }
+
   private build(level: LevelDef): void {
     level.boxes.forEach((box, i) => this.addBox(box, i));
     for (const p of level.props) this.addProp(p);

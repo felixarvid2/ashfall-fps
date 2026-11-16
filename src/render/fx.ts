@@ -5,7 +5,7 @@ import { WEAPONS } from '../content/weapons';
 import type { Settings } from '../ui/types';
 import type { AssetLibrary } from './assets';
 import { BeamPool, ParticleSystem } from './particles';
-import { makeCrossTexture, makeDecalTexture, makeGlowTexture, makeRingTexture } from './textures';
+import { makeCrossTexture, makeDecalTexture, makeGlowTexture } from './textures';
 
 const v3 = (v: Vec3) => new THREE.Vector3(v.x, v.y, v.z);
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
@@ -50,7 +50,6 @@ export class Fx {
   private fireballs = new Map<number, FireballObj>();
   private muzzle: (w: WeaponId) => THREE.Vector3 = () => new THREE.Vector3();
   private glowTex = makeGlowTexture();
-  private ringTex = makeRingTexture();
   private pickupTemplates = new Map<string, THREE.Object3D>();
   private geoSphere = new THREE.SphereGeometry(1, 16, 12);
   private geoCone: THREE.BufferGeometry;

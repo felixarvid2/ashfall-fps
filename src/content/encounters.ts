@@ -123,16 +123,16 @@ const SLAG: EncounterTemplate = {
         { kind: 'drone', count: [3, 4], lanes: ['slag_air'], burst: 2, gap: 6 },
         { kind: 'walker', count: [13, 15], lanes: ['slag_west', 'slag_east'], burst: 7, gap: 5, pick: 'cycle', charge: 0.5, delay: 1 },
       ],
-      { liveCap: 30, budget: 58, advanceAt: 8, cooldown: 2 },
+      { liveCap: 30, budget: 58, advanceAt: 12, cooldown: 1 },
     ),
     wave(
       'THE SWARM',
       [
-        { kind: 'walker', count: [40, 44], lanes: SLAG_GROUND, burst: 8, gap: 3.2, charge: 0.35 },
+        { kind: 'walker', count: [52, 56], lanes: SLAG_GROUND, burst: 12, gap: 3, charge: 0.35 },
         { kind: 'hound', count: 8, lanes: ['slag_west', 'slag_east', 'slag_rear_w', 'slag_rear_e'], burst: 2, gap: 6, delay: 3 },
         { kind: 'drone', count: 4, lanes: ['slag_air'], burst: 2, gap: 9, delay: 5 },
       ],
-      { liveCap: 78, budget: 80, advanceAt: 10, cooldown: 2, maxTime: 90 },
+      { liveCap: 78, budget: 90, advanceAt: 10, cooldown: 2, maxTime: 90 },
     ),
     wave(
       'STRAGGLERS',

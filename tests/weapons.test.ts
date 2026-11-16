@@ -73,10 +73,14 @@ describe('weapon state machine', () => {
     expect(traces.length).toBe(0);
     tick({ fireHeld: true, firePressed: true });
     expect(traces.length).toBe(1);
-    tick({ fireHeld: true, firePressed: true }); // too soon (buffered)
+    tick({ fireHeld: true, firePressed: true }); // too soon: ignored once the buffer lapses
+    tick({ fireHeld: true }, Math.ceil(WEAPONS.arc_scattergun.fireInterval / SIM_DT));
     expect(traces.length).toBe(1);
-    tick({ fireHeld: true }, Math.ceil(WEAPONS.arc_scattergun.fireInterval / SIM_DT) + 1);
-    expect(traces.length).toBe(2); // buffered click fires when ready
+    // A click slightly before the weapon is ready is buffered and fires on time.
+    tick({}, 1);
+    tick({ firePressed: true });
+    tick({}, 20);
+    expect(traces.length).toBe(2);
     expect(ws.magazine()).toBe(WEAPONS.arc_scattergun.capacity - 2);
     expect(traces[0]!.pellets.length).toBe(9);
   });
@@ -103,8 +107,6 @@ describe('weapon state machine', () => {
     expect(ws.reloading).toBe(false); // full
     tick({ fireHeld: true }, 10);
     // drain reserve to 3
-    ws.refundReserve('coil_carbine', 0);
-    while (ws.reserve() > 3) ws.transferReserveToMagazine('coil_carbine', 0);
     const s = ws as unknown as { st: Record<string, { reserve: number; mag: number }> };
     s.st.coil_carbine!.reserve = 3;
     s.st.coil_carbine!.mag = 10;

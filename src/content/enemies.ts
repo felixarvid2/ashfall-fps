@@ -66,7 +66,7 @@ export interface DroneProfile extends BaseProfile {
   /** Seconds between attacks (after the recovery gap). */
   cooldown: [number, number];
   fireball: { windup: number; speed: number; damage: number; radius: number; life: number; lead: number };
-  flame: { windup: number; duration: number; range: number; halfAngleDeg: number; damagePerSec: number };
+  flame: { windup: number; duration: number; range: number; arcDeg: number; hitHalfArcDeg: number; damage: number };
   /** Gap after an attack during which the drone only repositions. */
   recover: number;
 }
@@ -145,7 +145,7 @@ export const DRONE: DroneProfile = {
   keepMax: 15,
   cooldown: [2.4, 4.2],
   fireball: { windup: 0.8, speed: 14, damage: 14, radius: 0.7, life: 4, lead: 1 },
-  flame: { windup: 0.9, duration: 0.7, range: 12, halfAngleDeg: 30, damagePerSec: 26 },
+  flame: { windup: 0.9, duration: 0.7, range: 12, arcDeg: 70, hitHalfArcDeg: 12, damage: 16 },
   recover: 1.5,
 };
 

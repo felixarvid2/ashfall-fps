@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { WeaponId } from '../sim/types';
 import { MUZZLE_OFFSET, type ViewmodelState } from './types';
 import type { Settings } from '../ui/types';
@@ -9,7 +8,7 @@ import { cloneMaterials } from './assets';
 import { makeFlashTexture, makeGlowTexture } from './textures';
 
 /** Held length of the weapon model in meters. */
-const HELD_LENGTH: Record<WeaponId, number> = { coil_carbine: 0.74, arc_scattergun: 0.72, service_emitter: 0.2 };
+const HELD_LENGTH: Record<WeaponId, number> = { coil_carbine: 0.62, arc_scattergun: 0.6, service_emitter: 0.2 };
 /** Toe-in yaw (rad, +left) and pitch (rad) so the barrel points a little toward screen centre. */
 const TOE: Record<WeaponId, { yaw: number; pitch: number; roll: number }> = {
   coil_carbine: { yaw: 0.07, pitch: 0.02, roll: 0 },
@@ -55,16 +54,13 @@ export class Viewmodel {
   private time = 0;
   private prevReload: number | null = null;
 
-  constructor(private assets: AssetLibrary, renderer: THREE.WebGLRenderer) {
+  constructor(private assets: AssetLibrary, env: THREE.Texture) {
     this.camera.position.set(0, 0, 0);
-    const pm = new THREE.PMREMGenerator(renderer);
-    const env = pm.fromScene(new RoomEnvironment(), 0.04).texture;
     this.scene.environment = env;
-    this.scene.environmentIntensity = 0.55;
-    pm.dispose();
+    this.scene.environmentIntensity = 0.5;
 
-    this.scene.add(new THREE.AmbientLight(0x8a7060, 0.9));
-    const key = new THREE.DirectionalLight(0xffc896, 2.2);
+    this.scene.add(new THREE.AmbientLight(0x8a7060, 0.55));
+    const key = new THREE.DirectionalLight(0xffc896, 1.5);
     key.position.set(-1.5, 2, 1);
     this.scene.add(key);
     const rim = new THREE.PointLight(0xff6a20, 4, 3, 1.5);
