@@ -15,3 +15,12 @@
 ## Audio (src/audio)
 - `createAudioSystem()`; sounds pre-render on first `resume()`. A play before its render finishes is skipped once.
 - `stopAll()` also stops ambience → call `startAmbience()` again after restart.
+
+## UI (src/ui, src/profile)
+- `ui.overlayOpen` true for loading/menu/pause/click-to-resume/draft/results → the game ignores its own input then. Inspect (Tab) is non-modal: `ui.inspectOpen`.
+- Release pointer lock BEFORE `showDraft`/`showResults`/`showPause`/`showMenu`.
+- Construct `Ui` before registering game window capture-phase listeners (draft swallows the confirming keyup/click at window capture).
+- `settingsChanged` only notifies; the game persists with `saveProfile`. `recordRunEnd(profile, outcome, timeSec)` mutates the profile and returns newly unlocked names (Arc Scattergun on first extraction).
+- If the game rejects a pick, call `showDraft` again. Ui does not handle Esc on the pause screen itself (game handles Esc → resume).
+- Draft keys: 1/2/3, ←/→ (A/D) + Enter/Space, R reroll, S skip; Esc/Tab inert; 250 ms input guard; one action per `showDraft`.
+- Results keys: R/Enter same seed, N new seed, M menu.
