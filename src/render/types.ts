@@ -73,6 +73,18 @@ export interface RenderFrame {
   relay: { progress: number; active: boolean; done: boolean };
   extractionActive: boolean;
   gatesOpen: Record<string, boolean>;
+  projectiles: ProjectileRenderState[];
   /** Screen flash 0..1 (damage) and color. */
   flash: { amount: number; color: number };
+}
+
+export interface ProjectileRenderState {
+  id: number;
+  kind: 'fireball';
+  pos: Vec3;
+  vel: Vec3;
+}
+
+export interface RenderFrameExtras {
+  projectiles: ProjectileRenderState[];
 }
