@@ -9,7 +9,7 @@ import type { EnemyKind, EnemyState, Vec3, WeaponId } from '../sim/types';
 export const MUZZLE_OFFSET: Record<WeaponId, Vec3> = {
   coil_carbine: { x: 0.2, y: -0.16, z: -0.78 },
   arc_scattergun: { x: 0.22, y: -0.19, z: -0.72 },
-  service_emitter: { x: 0.28, y: -0.2, z: -0.45 },
+  service_emitter: { x: 0.19, y: -0.14, z: -0.76 },
 };
 
 export interface ViewmodelState {
@@ -73,6 +73,18 @@ export interface RenderFrame {
   relay: { progress: number; active: boolean; done: boolean };
   extractionActive: boolean;
   gatesOpen: Record<string, boolean>;
+  projectiles: ProjectileRenderState[];
   /** Screen flash 0..1 (damage) and color. */
   flash: { amount: number; color: number };
+}
+
+export interface ProjectileRenderState {
+  id: number;
+  kind: 'fireball';
+  pos: Vec3;
+  vel: Vec3;
+}
+
+export interface RenderFrameExtras {
+  projectiles: ProjectileRenderState[];
 }

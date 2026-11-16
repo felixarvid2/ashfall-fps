@@ -137,6 +137,8 @@ export type TriggerKind =
   | 'repulsion_chamber' // arc pellets push light enemies
   | 'cold_chamber' // first pull after reload fires a piercing slug
   | 'backwash' // a shot that damages >= N enemies emits stagger cone
+  | 'mass_driver' // pierce damage multiplier marker
+  | 'on_pick' // one-shot effect applied when picked (e.g. heal)
   | 'pact'; // weapon pact commitment marker
 
 export interface TriggeredEffect {
