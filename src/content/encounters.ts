@@ -24,6 +24,8 @@ export interface SpawnGroup {
   pick?: 'random' | 'cycle';
   /** Walkers only: chance that a spawned walker charges (runs) instead of walking. */
   charge?: number;
+  /** HP multiplier for this group's enemies (swarm walkers keep the same look). */
+  hpMul?: number;
   /** Probability the group is included at all (default 1). */
   chance?: number;
 }
@@ -43,6 +45,8 @@ export interface WaveTemplate {
   maxTime: number;
   /** Seconds between wave_warn and contact. */
   warn: number;
+  /** Supply crates dropped (visible, on lanes) when the wave starts. */
+  resupply?: { kind: 'ammo_coil' | 'ammo_arc' | 'health'; pos: { x: number; y: number; z: number }; amount: number }[];
 }
 
 export interface EncounterTemplate {
@@ -146,11 +150,23 @@ const SLAG: EncounterTemplate = {
     wave(
       'THE SWARM',
       [
-        { kind: 'walker', count: [34, 38], lanes: SLAG_GROUND, burst: 9, gap: 3.2, charge: 0.35 },
+        { kind: 'walker', count: [62, 68], lanes: SLAG_GROUND, burst: 18, gap: 2.4, charge: 0.35, hpMul: 0.6 },
         { kind: 'hound', count: 8, lanes: ['slag_west', 'slag_east', 'slag_rear_w', 'slag_rear_e'], burst: 2, gap: 5, delay: 3 },
         { kind: 'drone', count: 4, lanes: ['slag_air'], burst: 2, gap: 9, delay: 5 },
       ],
-      { liveCap: 66, budget: 70, advanceAt: 10, cooldown: 2, maxTime: 90 },
+      {
+        liveCap: 76, budget: 108, advanceAt: 10, cooldown: 2, maxTime: 90,
+        resupply: [
+          { kind: 'ammo_coil', pos: { x: -6, y: 0, z: -40 }, amount: 90 },
+          { kind: 'ammo_coil', pos: { x: 6, y: 0, z: -48 }, amount: 90 },
+          { kind: 'ammo_coil', pos: { x: 0, y: 0, z: -56 }, amount: 90 },
+          { kind: 'ammo_arc', pos: { x: -4, y: 0, z: -44 }, amount: 12 },
+          { kind: 'ammo_arc', pos: { x: 4, y: 0, z: -52 }, amount: 12 },
+          { kind: 'health', pos: { x: 0, y: 0, z: -34 }, amount: 50 },
+          { kind: 'health', pos: { x: -8, y: 0, z: -60 }, amount: 50 },
+          { kind: 'health', pos: { x: 8, y: 0, z: -60 }, amount: 50 },
+        ],
+      },
     ),
     wave(
       'STRAGGLERS',

@@ -230,11 +230,10 @@ export class Viewmodel {
     const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.2, 12), cloth);
     arm.rotation.x = Math.PI / 2;
     arm.position.set(0.03, -0.06, 0.05);
-    g.add(arm);
-    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.05, 16), orange);
+    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.05, 16), dark);
     cuff.rotation.x = Math.PI / 2;
-    cuff.position.set(0.02, -0.075, -0.04);
-    g.add(cuff);
+    cuff.position.set(0.0, -0.06, 0.02);
+    // (cuff removed)
     const body = new THREE.Mesh(new RoundedBoxGeometry(0.11, 0.085, 0.17, 3, 0.018), dark);
     body.position.set(0.0, 0.0, -0.1);
     g.add(body);
@@ -253,16 +252,10 @@ export class Viewmodel {
       coil.position.set(0, 0.005, -0.21 - k * 0.03);
       g.add(coil);
     }
-    for (let k = 0; k < 3; k++) {
-      const band = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.01, 16), dark);
-      band.rotation.x = Math.PI / 2;
-      band.position.set(0.02, -0.075, 0.06 + k * 0.07);
-      g.add(band);
-    }
     const stripe = new THREE.Mesh(new RoundedBoxGeometry(0.114, 0.016, 0.12, 2, 0.006), orange);
     stripe.position.set(0, 0.045, -0.09);
     g.add(stripe);
-    const screen = new THREE.Mesh(new RoundedBoxGeometry(0.07, 0.006, 0.07, 2, 0.002), glowMat);
+    const screen = new THREE.Mesh(new RoundedBoxGeometry(0.05, 0.006, 0.05, 2, 0.002), new THREE.MeshStandardMaterial({ color: 0x103828, emissive: 0x40d090, emissiveIntensity: 0.6 }));
     screen.position.set(0, 0.049, -0.02);
     g.add(screen);
     const muzzle = new THREE.Object3D();

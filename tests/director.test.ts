@@ -142,7 +142,7 @@ describe('Director', () => {
     expect(first.type === 'wave_warn' && first.lane).not.toBe('yard_main');
   });
 
-  it('slag fight builds to a big crowd (30-80 live) against a steady killer', () => {
+  it('slag fight builds to a big crowd (50-80 live) against a steady killer', () => {
     const { dir, step, mgr, killAll } = setup('A5', { x: 0, y: 0, z: -4 });
     dir.startArena('slag');
     let peak = 0;
@@ -155,7 +155,7 @@ describe('Director', () => {
         if (near.length) mgr.applyDamage(near[0]!.id, 1e6, { x: 0, y: 1, z: 0 }, 'direct');
       }
     }
-    expect(peak).toBeGreaterThanOrEqual(30);
+    expect(peak).toBeGreaterThanOrEqual(50);
     expect(peak).toBeLessThanOrEqual(80);
     killAll();
   });

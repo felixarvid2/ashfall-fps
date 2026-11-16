@@ -20,6 +20,7 @@ interface Burst {
   started: boolean;
   retries: number;
   chargeChance: number;
+  hpMul: number;
   liveCap: number;
   warnLead: number;
   label: string;
@@ -200,7 +201,9 @@ export class Director {
         if (g.pick === 'cycle') laneId = g.lanes[cycle++ % g.lanes.length]!;
         else laneId = this.rng.pick(g.lanes);
         const warnAt = start + (g.delay ?? 0) + i * g.gap;
-        planned.push(this.makeBurst(g.kind, take, laneId, warnAt, wave.warn, g.charge ?? 0, wave.liveCap, arena));
+        const nb = this.makeBurst(g.kind, take, laneId, warnAt, wave.warn, g.charge ?? 0, wave.liveCap, arena);
+        nb.hpMul = g.hpMul ?? 1;
+        planned.push(nb);
       }
     }
     planned.sort((a, b) => a.warnAt - b.warnAt);
@@ -235,7 +238,7 @@ export class Director {
     return {
       kind, remaining: n, laneId, lane, spawn: null,
       warnAt, dueAt: warnAt + warn, nextAt: 0, warned: false, started: false, retries: 0,
-      chargeChance: charge, liveCap: cap, warnLead: warn, label: lane?.label ?? laneId, spawnedIdx: 0,
+      chargeChance: charge, hpMul: 1, liveCap: cap, warnLead: warn, label: lane?.label ?? laneId, spawnedIdx: 0,
     };
   }
 
@@ -332,7 +335,7 @@ export class Director {
       const r = 0.8 * Math.sqrt(k);
       const pos = { x: b.spawn.x + Math.cos(ang) * r, y: b.spawn.y, z: b.spawn.z + Math.sin(ang) * r };
       const charge = b.kind === 'walker' && b.chargeChance > 0 && this.rng.chance(b.chargeChance);
-      this.enemies.spawn(b.kind, pos, b.lane.id, charge ? { charge: true } : undefined);
+      this.enemies.spawn(b.kind, pos, b.lane.id, charge || b.hpMul !== 1 ? { charge, hpMul: b.hpMul } : undefined);
       b.remaining--;
       b.nextAt = t + BURST_SPACING;
     }

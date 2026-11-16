@@ -17,6 +17,8 @@ export interface PlayerTarget {
 export interface SpawnOpts {
   /** Walkers: run instead of walk. */
   charge?: boolean;
+  /** Scales max HP (swarm walkers). */
+  hpMul?: number;
 }
 
 export interface CallRequest {
@@ -187,7 +189,7 @@ export class EnemyManager {
     e.id = this.nextId++;
     e.kind = kind;
     e.inUse = true;
-    e.hp = e.maxHp = prof.hp;
+    e.hp = e.maxHp = Math.max(1, Math.round(prof.hp * (opts?.hpMul ?? 1)));
     e.radius = prof.radius;
     e.height = prof.height;
     e.heavy = prof.heavy;

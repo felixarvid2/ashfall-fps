@@ -17,6 +17,7 @@ import { SIM_DT } from '../sim/types';
 import type { EnemyRenderState, PickupRenderState, ProjectileRenderState } from '../render/types';
 import type { DraftView, OwnedCardView, RunSetup } from '../ui/types';
 import { Rng } from '../core/rng';
+import { ENCOUNTERS } from '../content/encounters';
 import { AMMO_OF, AMMO_PICKUP, BASE_PLAYER, MAIN_WEAPONS, WEAPONS } from '../content/weapons';
 import {
   CardRuntime,
@@ -336,6 +337,11 @@ export class Run {
           this.endTimer = TUNING.deathDelay;
         }
         break;
+      case 'wave_start': {
+        const w = ENCOUNTERS[e.encounter]?.waves[e.wave - 1];
+        if (w?.resupply) for (const r of w.resupply) this.spawnPickup(r.kind, r.pos, r.amount);
+        break;
+      }
       case 'encounter_clear':
         this.onArenaCleared(e.encounter, e.salvage, true);
         break;

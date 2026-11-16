@@ -153,7 +153,7 @@ export class Bot {
     const coil = has('coil_carbine');
     const arc = has('arc_scattergun');
     let desired: 'coil_carbine' | 'arc_scattergun' | 'service_emitter';
-    if (arc && (!coil || (target !== null && target.d < (w.current === 'arc_scattergun' ? 18 : 13)))) desired = 'arc_scattergun';
+    if (arc && (!coil || (target !== null && target.d < (w.current === 'arc_scattergun' ? 10 : 7)))) desired = 'arc_scattergun';
     else if (coil) desired = 'coil_carbine';
     else desired = 'service_emitter';
     this.swapCd = Math.max(0, this.swapCd - 1 / 60);
@@ -238,7 +238,7 @@ export class Bot {
     const arcUsable = w.owns('arc_scattergun') && !w.isLocked('arc_scattergun');
     const lowCoil = coilUsable && w.reserve('coil_carbine') < WEAPONS.coil_carbine.reserveMax * (fight ? 0.4 : 0.7);
     const lowArc = arcUsable && w.reserve('arc_scattergun') < WEAPONS.arc_scattergun.reserveMax * (fight ? 0.4 : 0.7);
-    const hurt = run.player.health < run.player.maxHealth * (fight ? 0.55 : 0.7);
+    const hurt = run.player.health < run.player.maxHealth * (fight ? 0.7 : 0.7);
     let best: { x: number; z: number; id: string } | null = null;
     let bd = maxD;
     for (const k of run.renderPickups()) {

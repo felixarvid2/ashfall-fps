@@ -55,6 +55,7 @@ class EnemyInst {
   claw: THREE.Group | null = null;
   clawJoint: THREE.Sprite | null = null;
   shadowOn = true;
+  dist = 0;
   meshes: THREE.Mesh[] = [];
   lastState = '';
   deathStarted = false;
@@ -266,6 +267,7 @@ export class EnemiesView {
     this.sphere.radius = cfg.height * 1.2 + 1.5;
     const visible = dist < 140 && this.frustum.intersectsSphere(this.sphere);
     g.visible = visible;
+    e.dist = dist;
 
     g.position.set(st.pos.x, st.pos.y, st.pos.z);
     g.rotation.y = st.yaw;
@@ -424,6 +426,7 @@ export class EnemiesView {
   private updateTells(e: EnemyInst, st: EnemyRenderState, cfg: KindCfg, prog: number, time: number): void {
     const winding = st.state === 'windup';
     const attacking = st.state === 'attack';
+    const far = Math.min(4, Math.max(1, e.dist / 12)); // keep tells readable at range
     // ionized mark
     if (st.ionized && st.state !== 'dead') {
       if (!e.mark) {
@@ -433,7 +436,7 @@ export class EnemiesView {
       e.mark.visible = true;
       e.mark.position.set(0, cfg.head + 0.35 + Math.sin(time * 4 + st.id) * 0.04, 0);
       (e.mark.material as THREE.SpriteMaterial).opacity = 0.85;
-      e.mark.scale.setScalar(0.42 + 0.06 * Math.sin(time * 9));
+      e.mark.scale.setScalar((0.42 + 0.06 * Math.sin(time * 9)) * Math.min(3.5, far));
     } else if (e.mark) e.mark.visible = false;
 
     // walker: flare at the arm/chest
@@ -447,7 +450,7 @@ export class EnemiesView {
       e.tellSprite.visible = on;
       if (on) {
         const k = winding ? prog : 1 - st.stateTime / 0.2;
-        e.tellSprite.scale.setScalar(0.5 + k * 1.4 + Math.sin(time * 40) * 0.05);
+        e.tellSprite.scale.setScalar((0.5 + k * 1.4 + Math.sin(time * 40) * 0.05) * far);
         (e.tellSprite.material as THREE.SpriteMaterial).opacity = 0.35 + 0.65 * k;
       }
     }
@@ -465,9 +468,9 @@ export class EnemiesView {
       e.streak.visible = e.tellSprite!.visible = on;
       if (on) {
         const k = winding ? prog : 1;
-        e.streak.scale.set(0.6 + k * 3.2, 0.16 + k * 0.1, 1);
+        e.streak.scale.set((0.6 + k * 3.2) * far, (0.16 + k * 0.1) * far, 1);
         (e.streak.material as THREE.SpriteMaterial).opacity = 0.4 + 0.6 * k;
-        e.tellSprite!.scale.setScalar(0.3 + k * 0.7);
+        e.tellSprite!.scale.setScalar((0.3 + k * 0.7) * far);
         (e.tellSprite!.material as THREE.SpriteMaterial).opacity = 0.5 + 0.5 * k;
       }
     }
