@@ -57,10 +57,10 @@ export class Viewmodel {
   constructor(private assets: AssetLibrary, env: THREE.Texture) {
     this.camera.position.set(0, 0, 0);
     this.scene.environment = env;
-    this.scene.environmentIntensity = 0.5;
+    this.scene.environmentIntensity = 0.32;
 
-    this.scene.add(new THREE.AmbientLight(0x8a7060, 0.55));
-    const key = new THREE.DirectionalLight(0xffc896, 1.5);
+    this.scene.add(new THREE.AmbientLight(0x8a7060, 0.4));
+    const key = new THREE.DirectionalLight(0xffc896, 1.05);
     key.position.set(-1.5, 2, 1);
     this.scene.add(key);
     const rim = new THREE.PointLight(0xff6a20, 4, 3, 1.5);
@@ -133,7 +133,14 @@ export class Viewmodel {
         if (m.isMesh) {
           m.frustumCulled = false;
           const ms = Array.isArray(m.material) ? m.material : [m.material];
-          for (const x of ms) if ((x as THREE.MeshStandardMaterial).isMeshStandardMaterial) mats.push(x as THREE.MeshStandardMaterial);
+          for (const x of ms) {
+            const sm = x as THREE.MeshStandardMaterial;
+            if (!sm.isMeshStandardMaterial) continue;
+            // The Meshy albedo reads near-white under ACES; pull it down a touch.
+            sm.color.multiplyScalar(0.5);
+            sm.envMapIntensity = 0.7;
+            mats.push(sm);
+          }
         }
       });
       // locate muzzle (min-X end): average Y/Z of vertices near the tip
@@ -205,9 +212,9 @@ export class Viewmodel {
     const glowMat = new THREE.MeshStandardMaterial({ color: 0x103828, emissive: 0x8affc8, emissiveIntensity: 0.4, metalness: 0.3, roughness: 0.3 });
     const g = new THREE.Group();
     // forearm sleeve running back toward camera, lower right
-    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.065, 0.5, 12), cloth);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.2, 12), cloth);
     arm.rotation.x = Math.PI / 2;
-    arm.position.set(0.03, -0.07, 0.2);
+    arm.position.set(0.03, -0.06, 0.05);
     g.add(arm);
     const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.062, 0.07, 12), orange);
     cuff.rotation.x = Math.PI / 2;

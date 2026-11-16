@@ -79,6 +79,10 @@ export class Input {
   private lookDX = 0;
   private lookDY = 0;
   private lockPending = false;
+  /** Automation: report pointer lock as granted without the browser. */
+  fakeLock = false;
+  /** Automation: values merged into every sample (edge flags are consumed after one sample). */
+  override: Partial<InputSample> | null = null;
   private disposed = false;
 
   constructor(private canvas: HTMLElement, private hooks: InputHooks = {}) {
@@ -111,7 +115,7 @@ export class Input {
   // -- pointer lock --------------------------------------------------------
 
   get locked(): boolean {
-    return document.pointerLockElement === this.canvas;
+    return this.fakeLock || document.pointerLockElement === this.canvas;
   }
 
   /** Must be called from a user gesture handler. Resolves once the lock state is known. */
@@ -141,7 +145,7 @@ export class Input {
   }
 
   exitLock(): void {
-    if (this.locked) {
+    if (!this.fakeLock && this.locked) {
       try {
         document.exitPointerLock();
       } catch {
@@ -205,6 +209,13 @@ export class Input {
       yaw: this.yaw,
       pitch: this.pitch,
     };
+    if (this.override) {
+      const o = this.override;
+      Object.assign(s, o);
+      if (o.yaw !== undefined) this.yaw = o.yaw;
+      if (o.pitch !== undefined) this.pitch = o.pitch;
+      for (const k of ['jump', 'dash', 'reload', 'slot1', 'slot2', 'backup', 'interactPressed', 'firePressed'] as const) delete this.override[k];
+    }
     this.pressed.clear();
     this.firePressed = false;
     return s;

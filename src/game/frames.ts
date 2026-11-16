@@ -69,7 +69,7 @@ export function buildRenderFrame(run: Run, alpha: number, view: ViewState, setti
   };
 }
 
-export function buildHud(run: Run, settings: Settings, viewYaw: number, viewportHeight: number, enemies: EnemyRenderState[]): HudModel {
+export function buildHud(run: Run, settings: Settings, viewYaw: number, viewportWidth: number, enemies: EnemyRenderState[]): HudModel {
   const p = run.player;
   const w = run.weapons;
   const cur = w.current;
@@ -83,8 +83,9 @@ export function buildHud(run: Run, settings: Settings, viewYaw: number, viewport
 
   // Crosshair: weapon cone plus a movement/recoil bloom, in screen pixels.
   const spreadDeg = stats.spreadDeg + (p.horizontalSpeed / p.stats.moveSpeed) * 0.5 + w.kick * 0.6;
+  // camera.fov is horizontal degrees, so scale by half the viewport width.
   const half = Math.tan((spreadDeg * Math.PI) / 360) / Math.tan((settings.fov * Math.PI) / 360);
-  const crosshairSpread = clamp(half * (viewportHeight / 2), 4, 90);
+  const crosshairSpread = clamp(half * (viewportWidth / 2), 4, 90);
 
   const boss = enemies.find((e) => e.kind === 'loader' && e.state !== 'dead');
   const px = p.pos.x;

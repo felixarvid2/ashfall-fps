@@ -72,6 +72,7 @@ export interface DirectorApi {
   readonly status: { arena: string | null; wave: number; waves: number; live: number; queued: number; cleared: string[] };
   isCleared(id: string): boolean;
   reset(): void;
+  startStress?(count?: number): void;
 }
 
 export interface RunFactories {

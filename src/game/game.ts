@@ -9,10 +9,12 @@ import { GameRenderer } from '../render';
 
 import { createAudioSystem } from '../audio';
 import type { AudioSystem, SfxId } from '../audio/types';
-import { Ui, loadProfile, saveProfile } from '../ui';
+import { Ui } from '../ui';
+import { loadProfile, saveProfile, recordRunEnd } from '../profile/profile';
 import type { Profile, ResultsView, RunSetup, Settings, UiActions } from '../ui/types';
 import type { GameEvent, MainWeaponId } from '../sim/types';
 import { Run } from './run';
+import { Bot, type PactPolicy } from './bot';
 import { DEFAULT_FACTORIES } from './factories';
 import { FixedStepper, FrameStats } from './loop';
 import { buildDebug, buildHud, buildRenderFrame } from './frames';
@@ -24,6 +26,14 @@ export interface DevParams {
   loadout: string | null;
   skipTo: 'yard' | 'slag' | 'relay' | null;
   autostart: boolean;
+  /** Treat pointer lock as granted (automation). */
+  nolock: boolean;
+  stress: number;
+  /** Dev autoplayer pact policy. */
+  bot: PactPolicy | null;
+  /** Dev: simulation steps per rendered frame (slow software GL automation). 0 = normal. */
+  turbo: number;
+  assist: boolean;
 }
 
 /** `?seed=XXXX&loadout=coil-cascade|arc-backwash&skipTo=yard|slag|relay[&autostart=1]` */
@@ -35,7 +45,11 @@ export function parseDevParams(search: string): DevParams {
   const st = q.get('skipTo');
   const skipTo = st === 'yard' || st === 'slag' || st === 'relay' ? st : null;
   const autostart = q.get('autostart') === '1';
-  return { active: !!(seed || loadout || skipTo || autostart), seed, loadout, skipTo, autostart };
+  const nolock = q.get('nolock') === '1';
+  const stress = Math.max(0, Math.min(400, Number(q.get('stress') ?? 0) || 0));
+  const b = q.get('bot');
+  const bot = b === 'none' || b === 'coil' || b === 'arc' ? b : null;
+  return { active: !!(seed || loadout || skipTo || autostart || nolock || stress || bot), seed, loadout, skipTo, autostart, nolock, stress, bot, turbo: Math.max(0, Math.min(240, Number(q.get('turbo') ?? 0) || 0)), assist: q.get('assist') === '1' };
 }
 
 type Mode = 'loading' | 'menu' | 'playing' | 'draft' | 'paused' | 'resume' | 'resuming' | 'results';
@@ -68,6 +82,9 @@ export class Game {
   private intensity = 0;
   private inspectOpen = false;
   private disposed = false;
+  devBot: Bot | null = null;
+  private pausedAt = 0;
+  private botDraftAt = 0;
 
   private actions: UiActions = {
     startRun: (setup) => this.startRun(setup),
@@ -98,7 +115,9 @@ export class Game {
       onToggleDebug: () => this.toggleDebug(),
     });
     this.input.configure(this.profile.settings);
+    if (dev.nolock) this.input.fakeLock = true;
     window.addEventListener('resize', this.onResize);
+    window.addEventListener('keydown', this.onGlobalKey);
   }
 
   // -- boot ----------------------------------------------------------------
@@ -124,6 +143,7 @@ export class Game {
     this.disposed = true;
     cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('keydown', this.onGlobalKey);
     this.run?.dispose();
     this.run = null;
     this.input.dispose();
@@ -144,6 +164,26 @@ export class Game {
     saveProfile(this.profile);
     this.debugOn = s.showDebug;
     this.applySettings(s);
+  }
+
+  /** Esc on the pause / click-to-resume screens resumes (the UI does not handle it). */
+  private onGlobalKey = (e: KeyboardEvent): void => {
+    if (e.code === 'Escape' && !e.repeat && (this.mode === 'paused' || this.mode === 'resume') && performance.now() - this.pausedAt > 400) {
+      this.resume();
+    }
+  };
+
+  get currentRun(): Run | null {
+    return this.run;
+  }
+  get currentMode(): string {
+    return this.mode;
+  }
+  get inputRef(): Input {
+    return this.input;
+  }
+  get rendererRef(): GameRenderer {
+    return this.renderer;
   }
 
   private onResize = (): void => {
@@ -178,7 +218,7 @@ export class Game {
 
   private beginRun(seed: string, requestedStarter: MainWeaponId): void {
     this.endRun();
-    const devActive = !!(this.dev.loadout || this.dev.skipTo);
+    const devActive = !!(this.dev.loadout || this.dev.skipTo || this.dev.stress);
     let starter = requestedStarter;
     if (starter === 'arc_scattergun' && !this.profile.unlocks.arcScattergun && !devActive) starter = 'coil_carbine';
     if (this.dev.loadout === 'arc-backwash') starter = 'arc_scattergun';
@@ -208,7 +248,11 @@ export class Game {
     this.ui.hideOverlays();
     this.ui.setHudVisible(true);
     this.audio.startAmbience();
+    this.devBot = this.dev.bot ? new Bot(this.dev.bot, this.input.yaw) : null;
+    if (this.devBot) this.devBot.assistOn = this.dev.assist;
+    if (this.devBot && this.dev.skipTo) this.devBot.syncTo(run);
     run.start({ skipDeployment: devActive });
+    if (this.dev.stress) run.director.startStress?.(this.dev.stress);
     if (run.draft) this.enterDraft();
     else void this.beginPlay();
   }
@@ -259,6 +303,7 @@ export class Game {
 
   private pause(): void {
     if (this.mode !== 'playing' || !this.run) return;
+    this.pausedAt = performance.now();
     this.mode = 'paused';
     this.input.setEnabled(false);
     this.input.exitLock();
@@ -315,26 +360,10 @@ export class Game {
     this.ui.toggleInspect(null);
     this.inspectOpen = false;
     const outcome = run.outcome ?? 'dead';
-    const unlockedNow: string[] = [];
-    const devActive = !!(this.dev.loadout || this.dev.skipTo);
+    let unlockedNow: string[] = [];
+    const devActive = !!(this.dev.loadout || this.dev.skipTo || this.dev.stress);
     if (!devActive) {
-      const p = this.profile;
-      const stats = { ...p.stats, runs: p.stats.runs + 1 };
-      const feats = new Set(p.feats);
-      let unlocks = p.unlocks;
-      if (outcome === 'extracted') {
-        stats.extractions++;
-        stats.bestTimeSec = stats.bestTimeSec === null ? run.time : Math.min(stats.bestTimeSec, run.time);
-        feats.add('first_extraction');
-        if (!unlocks.arcScattergun) {
-          unlocks = { ...unlocks, arcScattergun: true };
-          unlockedNow.push('Arc Scattergun: now selectable as a starting weapon');
-        }
-      } else {
-        stats.deaths++;
-        feats.add('first_death');
-      }
-      this.profile = { ...p, stats, unlocks, feats: [...feats] };
+      unlockedNow = recordRunEnd(this.profile, outcome, run.time);
       saveProfile(this.profile);
     }
     const weapons = run.weapons.mains.filter((w) => !run.weapons.isLocked(w)).map((w) => WEAPONS[w].name);
@@ -367,12 +396,26 @@ export class Game {
     if (!run) return;
 
     if (this.mode === 'playing' && !run.frozen) {
-      this.alpha = this.stepper.advance(dt, () => {
+      const stepOnce = (): void => {
+        if (this.devBot) this.input.override = this.devBot.step(run);
         if (!run.frozen) run.step(this.input.sample());
-      });
+      };
+      if (this.dev.turbo > 0) {
+        for (let i = 0; i < this.dev.turbo && !run.frozen && !run.finished; i++) stepOnce();
+        this.alpha = 1;
+      } else this.alpha = this.stepper.advance(dt, stepOnce);
       if (run.draft) {
         this.routeEvents(run.drainEvents());
         this.enterDraft();
+      }
+    }
+    if (this.devBot && this.mode === 'draft' && run.draft) {
+      if (this.botDraftAt === 0) this.botDraftAt = now + 6000;
+      else if (now >= this.botDraftAt) {
+        this.botDraftAt = 0;
+        const d = this.devBot.pickDraft(run.draft.offer);
+        if (d.action === 'pick') this.draftPick(run.draft.offer.offerId, d.index);
+        else this.draftSkip(run.draft.offer.offerId);
       }
     }
     const events = run.drainEvents();
@@ -401,7 +444,7 @@ export class Game {
     this.intensity += (target - this.intensity) * Math.min(1, dt * 1.5);
     this.audio.setIntensity(this.intensity);
 
-    this.ui.updateHud(buildHud(run, settings, this.input.yaw, window.innerHeight, enemies));
+    this.ui.updateHud(buildHud(run, settings, this.input.yaw, window.innerWidth, enemies));
     if (this.debugOn) {
       this.ui.updateDebug(
         buildDebug(

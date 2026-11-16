@@ -9,7 +9,7 @@ import type { EnemyKind, EnemyState, Vec3, WeaponId } from '../sim/types';
 export const MUZZLE_OFFSET: Record<WeaponId, Vec3> = {
   coil_carbine: { x: 0.2, y: -0.16, z: -0.78 },
   arc_scattergun: { x: 0.22, y: -0.19, z: -0.72 },
-  service_emitter: { x: 0.28, y: -0.2, z: -0.45 },
+  service_emitter: { x: 0.19, y: -0.14, z: -0.76 },
 };
 
 export interface ViewmodelState {
